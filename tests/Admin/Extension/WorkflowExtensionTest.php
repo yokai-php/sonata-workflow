@@ -11,9 +11,9 @@ use Sonata\AdminBundle\Translator\LabelTranslatorStrategyInterface;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\StateMachine;
-use Symfony\Component\Workflow\SupportStrategy\ClassInstanceSupportStrategy;
+use Symfony\Component\Workflow\SupportStrategy\InstanceOfSupportStrategy;
 use Yokai\SonataWorkflow\Admin\Extension\WorkflowExtension;
-use Yokai\SonataWorkflow\Admin\WorkflowController;
+use Yokai\SonataWorkflow\Controller\WorkflowController;
 use Yokai\SonataWorkflow\Tests\PullRequest;
 
 /**
@@ -60,7 +60,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         $registry = new Registry();
         $registry->add(
             new StateMachine(PullRequest::createWorkflowDefinition()),
-            new ClassInstanceSupportStrategy(PullRequest::class)
+            PullRequest::createSupportStrategy()
         );
 
         $extension = new WorkflowExtension($registry);
@@ -121,7 +121,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         $registry = new Registry();
         $registry->add(
             new StateMachine(PullRequest::createWorkflowDefinition()),
-            new ClassInstanceSupportStrategy(PullRequest::class)
+            PullRequest::createSupportStrategy()
         );
 
         $options = [

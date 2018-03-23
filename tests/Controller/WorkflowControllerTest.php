@@ -19,7 +19,6 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\StateMachine;
-use Symfony\Component\Workflow\SupportStrategy\ClassInstanceSupportStrategy;
 use Yokai\SonataWorkflow\Tests\PullRequest;
 use Yokai\SonataWorkflow\Tests\PullRequestWorkflowController;
 use Yokai\SonataWorkflow\Tests\TestKernel;
@@ -136,7 +135,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
     {
         $this->registry->add(
             new StateMachine(PullRequest::createWorkflowDefinition()),
-            new ClassInstanceSupportStrategy(PullRequest::class)
+            PullRequest::createSupportStrategy()
         );
 
         $this->admin->getObject(42)->shouldBeCalledTimes(1)
@@ -156,7 +155,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
     {
         $this->registry->add(
             new StateMachine(PullRequest::createWorkflowDefinition()),
-            new ClassInstanceSupportStrategy(PullRequest::class)
+            PullRequest::createSupportStrategy()
         );
 
         $this->request->attributes->set('transition', 'transition_that_do_not_exists');
@@ -179,7 +178,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
     {
         $this->registry->add(
             new StateMachine(PullRequest::createWorkflowDefinition()),
-            new ClassInstanceSupportStrategy(PullRequest::class)
+            PullRequest::createSupportStrategy()
         );
 
         $this->request->attributes->set('transition', 'start_review');
@@ -200,7 +199,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
     {
         $this->registry->add(
             new StateMachine(PullRequest::createWorkflowDefinition()),
-            new ClassInstanceSupportStrategy(PullRequest::class)
+            PullRequest::createSupportStrategy()
         );
 
         $this->request->attributes->set('transition', 'start_review');
@@ -236,7 +235,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
     {
         $this->registry->add(
             new StateMachine(PullRequest::createWorkflowDefinition()),
-            new ClassInstanceSupportStrategy(PullRequest::class)
+            PullRequest::createSupportStrategy()
         );
 
         $this->request->attributes->set('transition', 'start_review');
@@ -265,7 +264,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
     {
         $this->registry->add(
             new StateMachine(PullRequest::createWorkflowDefinition()),
-            new ClassInstanceSupportStrategy(PullRequest::class)
+            PullRequest::createSupportStrategy()
         );
 
         $this->request->attributes->set('transition', 'start_review');
@@ -301,7 +300,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
     {
         $this->registry->add(
             new StateMachine(PullRequest::createWorkflowDefinition()),
-            new ClassInstanceSupportStrategy(PullRequest::class)
+            PullRequest::createSupportStrategy()
         );
 
         $this->request->attributes->set('transition', 'merge');
