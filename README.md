@@ -96,7 +96,7 @@ services:
         class: Yokai\SonataWorkflow\Admin\Extension\WorkflowExtension
         public: true
         arguments:
-            - "@registry"
+            - "@workflow.registry"
 
 sonata_admin:
     extensions:
@@ -124,7 +124,7 @@ services:
         class: Yokai\SonataWorkflow\Admin\Extension\WorkflowExtension
         public: true
         arguments:
-            - "@registry"
+            - "@workflow.registry"
             - workflow_name: pull_request
               no_transition_label: No transition for pull request
               no_transition_icon: fa fa-times
