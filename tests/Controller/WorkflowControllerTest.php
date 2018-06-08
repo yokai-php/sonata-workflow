@@ -7,6 +7,7 @@ use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Admin\Pool;
 use Sonata\AdminBundle\Exception\LockException;
 use Sonata\AdminBundle\Exception\ModelManagerException;
+use Sonata\AdminBundle\Templating\TemplateRegistryInterface;
 use Symfony\Bundle\FrameworkBundle\Tests\Templating\Helper\Fixtures\StubTranslator;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -84,10 +85,12 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         $this->container->get('session')->willReturn(new Session(new MockArraySessionStorage(), null, $this->flashBag));
         $this->container->get('translator')->willReturn($this->translator);
         $this->container->has('logger')->willReturn(false);
+        $this->container->get('admin.pull_request.template_registry')->willReturn($this->prophesize(TemplateRegistryInterface::class)->reveal());
 
         $this->admin->isChild()->willReturn(false);
         $this->admin->setRequest($this->request)->willReturn(null);
         $this->admin->getIdParameter()->willReturn('id');
+        $this->admin->getCode()->willReturn('admin.pull_request');
     }
 
     public function tearDown()

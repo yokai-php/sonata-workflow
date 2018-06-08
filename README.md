@@ -89,14 +89,17 @@ services:
     admin.pull_request:
         class: App\Admin\PullRequestAdmin
         public: true
-        arguments: [~, App\Entity\PullRequest, 'Yokai\SonataWorkflow\Controller\WorkflowController']
+        arguments: [~, App\Entity\PullRequest, Yokai\SonataWorkflow\Controller\WorkflowController]
         tags:
             - { name: 'sonata.admin', manager_type: orm, label: PullRequest }
     admin.extension.workflow:
         class: Yokai\SonataWorkflow\Admin\Extension\WorkflowExtension
         public: true
         arguments:
-            - "@workflow.registry"
+            - '@workflow.registry'
+    Yokai\SonataWorkflow\Controller\WorkflowController:
+        autowire: true
+        tags: ['controller.service_arguments']
 
 sonata_admin:
     extensions:
@@ -104,6 +107,10 @@ sonata_admin:
             admins:
                 - admin.pull_request
 ```
+
+> **note**: You may noticed that we also registered the controller 
+`Yokai\SonataWorkflow\Controller\WorkflowController` as a service.
+It is important, because it needs the workflow registry service to work.
 
 ### More specific extension per admin
 
@@ -124,7 +131,7 @@ services:
         class: Yokai\SonataWorkflow\Admin\Extension\WorkflowExtension
         public: true
         arguments:
-            - "@workflow.registry"
+            - '@workflow.registry'
             - workflow_name: pull_request
               no_transition_label: No transition for pull request
               no_transition_icon: fa fa-times
@@ -135,6 +142,9 @@ services:
                   start_review: fa fa-search
                   merge: fa fa-check
                   close: fa fa-times
+    Yokai\SonataWorkflow\Controller\WorkflowController:
+        autowire: true
+        tags: ['controller.service_arguments']
 
 sonata_admin:
     extensions:
@@ -171,7 +181,7 @@ services:
     admin.pull_request:
         class: App\Admin\PullRequestAdmin
         public: true
-        arguments: [~, App\Entity\PullRequest, 'App\Admin\Controller\PullRequestController']
+        arguments: [~, App\Entity\PullRequest, App\Admin\Controller\PullRequestController]
         tags:
             - { name: 'sonata.admin', manager_type: orm, label: PullRequest }
 ```

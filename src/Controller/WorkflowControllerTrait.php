@@ -6,12 +6,14 @@ use Psr\Container\ContainerInterface;
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Exception\LockException;
 use Sonata\AdminBundle\Exception\ModelManagerException;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Workflow\Exception\InvalidArgumentException;
 use Symfony\Component\Workflow\Exception\LogicException;
+use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\Workflow;
 
 /**
@@ -31,6 +33,21 @@ use Symfony\Component\Workflow\Workflow;
  */
 trait WorkflowControllerTrait
 {
+    /**
+     * @var Registry
+     */
+    private $workflowRegistry;
+
+    /**
+     * @param Registry $workflowRegistry
+     *
+     * @required Symfony DI autowiring
+     */
+    public function setWorkflowRegistry(Registry $workflowRegistry)
+    {
+        $this->workflowRegistry = $workflowRegistry;
+    }
+
     /**
      * @param Request $request
      *
@@ -137,11 +154,25 @@ trait WorkflowControllerTrait
      */
     protected function getWorkflow($object)
     {
-        if (method_exists($this, 'get')) {
-            return $this->get('workflow.registry')->get($object);
+        $registry = $this->workflowRegistry;
+        if ($registry === null) {
+            try {
+                if (method_exists($this, 'get')) {
+                    $registry = $this->get('workflow.registry');
+                } else {
+                    $registry = $this->getContainer()->get('workflow.registry');
+                }
+            } catch (ServiceNotFoundException $exception) {
+                throw new \LogicException('Could not find the "workflow.registry" service. '.
+                    'You should either provide it via setter injection in your controller service definition '.
+                    'or make it public in your project.',
+                    0,
+                    $exception
+                );
+            }
         }
 
-        return $this->getContainer()->get('workflow.registry')->get($object);
+        return $registry->get($object);
     }
 
     /**
