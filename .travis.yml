@@ -9,7 +9,8 @@ env:
   - SYMFONY_VERSION="3.3.*"
   - SYMFONY_VERSION="3.4.*"
   - SYMFONY_VERSION="4.0.*"
-  - SYMFONY_VERSION="4.1.x-dev"
+  - SYMFONY_VERSION="4.1.*"
+  - SYMFONY_VERSION="4.2.x-dev"
 
 matrix:
   exclude:
@@ -17,7 +18,9 @@ matrix:
     - php: 7.0
       env: SYMFONY_VERSION="4.0.*"
     - php: 7.0
-      env: SYMFONY_VERSION="4.1.x-dev"
+      env: SYMFONY_VERSION="4.1.*"
+    - php: 7.0
+      env: SYMFONY_VERSION="4.2.x-dev"
 
 sudo: false
 
