@@ -72,6 +72,10 @@ class WorkflowExtension extends AbstractAdminExtension
         $action,
         AdminInterface $childAdmin = null
     ) {
+        if (!in_array($action, $this->options['render_actions'], true)) {
+            return;
+        }
+
         $subject = $admin->getSubject();
         if (null === $subject) {
             return;
@@ -111,6 +115,7 @@ class WorkflowExtension extends AbstractAdminExtension
     {
         $resolver
             ->setDefaults([
+                'render_actions' => ['edit', 'show'],
                 'workflow_name' => null,
                 'no_transition_display' => false,
                 'no_transition_label' => 'workflow_transitions_empty',
@@ -120,6 +125,7 @@ class WorkflowExtension extends AbstractAdminExtension
                 'transitions_default_icon' => null,
                 'transitions_icons' => [],
             ])
+            ->setAllowedTypes('render_actions', ['string[]'])
             ->setAllowedTypes('workflow_name', ['string', 'null'])
             ->setAllowedTypes('no_transition_display', ['bool'])
             ->setAllowedTypes('no_transition_label', ['string'])

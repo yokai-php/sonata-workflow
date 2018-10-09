@@ -132,7 +132,8 @@ services:
         public: true
         arguments:
             - '@workflow.registry'
-            - workflow_name: pull_request
+            - render_actions: [show]
+              workflow_name: pull_request
               no_transition_label: No transition for pull request
               no_transition_icon: fa fa-times
               dropdown_transitions_label: Pull request transitions
@@ -155,6 +156,7 @@ sonata_admin:
 
 What are these options ?
 
+- `render_actions` : Admin action names on which the extension should render its menu (defaults to `[show, edit]`)
 - `workflow_name` : The name of the Workflow to handle (defaults to `null`)
 - `no_transition_display` : Whether or not to display a button when no transition is enabled (defaults to `false`)
 - `no_transition_label` : The button label when no transition is enabled (defaults to `workflow_transitions_empty`)
