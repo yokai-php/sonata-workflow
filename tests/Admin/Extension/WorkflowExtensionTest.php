@@ -36,7 +36,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         self::assertSame('/pull-request/{id}/workflow/transition/{transition}/apply', $route->getPath());
         self::assertNotEmpty($defaults = $route->getDefaults());
         self::assertArrayHasKey('_controller', $defaults);
-        self::assertSame(WorkflowController::class.':workflowApplyTransitionAction', $defaults['_controller']);
+        self::assertSame(WorkflowController::class.'::workflowApplyTransitionAction', $defaults['_controller']);
         self::assertArrayHasKey('_sonata_admin', $defaults);
         self::assertSame('pull_request', $defaults['_sonata_admin']);
     }
