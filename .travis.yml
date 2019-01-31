@@ -4,13 +4,14 @@ php:
   - 7.0
   - 7.1
   - 7.2
+  - 7.3
 
 env:
   - SYMFONY_VERSION="3.3.*"
   - SYMFONY_VERSION="3.4.*"
   - SYMFONY_VERSION="4.0.*"
   - SYMFONY_VERSION="4.1.*"
-  - SYMFONY_VERSION="4.2.x-dev"
+  - SYMFONY_VERSION="4.2.*"
 
 matrix:
   exclude:
@@ -20,7 +21,7 @@ matrix:
     - php: 7.0
       env: SYMFONY_VERSION="4.1.*"
     - php: 7.0
-      env: SYMFONY_VERSION="4.2.x-dev"
+      env: SYMFONY_VERSION="4.2.*"
 
 sudo: false
 
@@ -29,10 +30,10 @@ cache:
     - $HOME/.composer/cache
 
 before_install:
-  - composer selfupdate
+  - rm -rf composer.lock vendor/
   - if [ "$SYMFONY_VERSION" != "" ]; then composer require "symfony/workflow:${SYMFONY_VERSION}" --no-update; fi;
 
-install: composer update --prefer-dist --no-interaction $COMPOSER_FLAGS
+install: composer install --prefer-dist --no-interaction
 
 script:
   - vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml
