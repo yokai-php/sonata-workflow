@@ -90,7 +90,7 @@ class WorkflowExtension extends AbstractAdminExtension
         $transitions = $workflow->getEnabledTransitions($subject);
 
         if (count($transitions) === 0) {
-            $this->noTransitions($menu);
+            $this->noTransitions($menu, $admin);
         } else {
             $this->transitionsDropdown($menu, $admin, $transitions, $subject);
         }
@@ -139,14 +139,18 @@ class WorkflowExtension extends AbstractAdminExtension
 
     /**
      * @param MenuItemInterface $menu
+     * @param AdminInterface    $admin
      */
-    protected function noTransitions(MenuItemInterface $menu)
+    protected function noTransitions(MenuItemInterface $menu, AdminInterface $admin)
     {
         if ($this->options['no_transition_display']) {
             $menu->addChild($this->options['no_transition_label'], [
                 'uri' => '#',
                 'attributes' => [
                     'icon' => $this->options['no_transition_icon'],
+                ],
+                'extras' => [
+                    'translation_domain' => $admin->getTranslationDomain(),
                 ],
             ]);
         }
@@ -164,6 +168,9 @@ class WorkflowExtension extends AbstractAdminExtension
             'attributes' => [
                 'dropdown' => true,
                 'icon' => $this->options['dropdown_transitions_icon'],
+            ],
+            'extras' => [
+                'translation_domain' => $admin->getTranslationDomain(),
             ],
         ]);
 
@@ -183,6 +190,9 @@ class WorkflowExtension extends AbstractAdminExtension
         $options = [
             'uri' => $this->generateTransitionUri($admin, $transition, $subject),
             'attributes' => [],
+            'extras' => [
+                'translation_domain' => $admin->getTranslationDomain(),
+            ],
         ];
 
         if ($icon = $this->getTransitionIcon($transition)) {
@@ -190,7 +200,7 @@ class WorkflowExtension extends AbstractAdminExtension
         }
 
         $menu->addChild(
-            $admin->getLabelTranslatorStrategy()->getLabel($transition->getName(), 'workflow'),
+            $admin->getLabelTranslatorStrategy()->getLabel($transition->getName(), 'workflow', 'transition'),
             $options
         );
     }

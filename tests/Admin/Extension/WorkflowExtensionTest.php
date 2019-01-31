@@ -36,7 +36,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         self::assertSame('/pull-request/{id}/workflow/transition/{transition}/apply', $route->getPath());
         self::assertNotEmpty($defaults = $route->getDefaults());
         self::assertArrayHasKey('_controller', $defaults);
-        self::assertSame(WorkflowController::class.'::workflowApplyTransitionAction', $defaults['_controller']);
+        self::assertSame(WorkflowController::class.':workflowApplyTransitionAction', $defaults['_controller']);
         self::assertArrayHasKey('_sonata_admin', $defaults);
         self::assertSame('pull_request', $defaults['_sonata_admin']);
     }
@@ -106,13 +106,14 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
 
         /** @var AdminInterface|ObjectProphecy $admin */
         $admin = $this->prophesize(AdminInterface::class);
+        $admin->getTranslationDomain()->willReturn('admin');
         $admin->getLabelTranslatorStrategy()->willReturn($labelStrategy->reveal());
         $admin->getSubject()->willReturn($pullRequest);
 
         foreach ($transitions as $transition) {
-            $labelStrategy->getLabel($transition, 'workflow')
+            $labelStrategy->getLabel($transition, 'workflow', 'transition')
                 ->shouldBeCalledTimes(1)
-                ->willReturn('transition.'.$transition);
+                ->willReturn('workflow.transition.'.$transition);
             $admin->generateObjectUrl('workflow_apply_transition', $pullRequest, ['transition' => $transition])
                 ->shouldBeCalledTimes(1)
                 ->willReturn('/pull-request/42/workflow/transition/'.$transition.'/apply');
@@ -135,11 +136,13 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
             self::assertNull($child = $menu->getChild('workflow_transitions'));
             self::assertNotNull($child = $menu->getChild('workflow_transitions_empty'));
             self::assertSame('#', $child->getUri());
+            self::assertSame('admin', $child->getExtra('translation_domain'));
             self::assertFalse($child->hasChildren());
             self::assertEmpty($child->getChildren());
         } else {
             self::assertNull($child = $menu->getChild('workflow_transitions_empty'));
             self::assertNotNull($child = $menu->getChild('workflow_transitions'));
+            self::assertSame('admin', $child->getExtra('translation_domain'));
             self::assertTrue($child->getAttribute('dropdown'));
             self::assertSame('fa fa-code-fork', $child->getAttribute('icon'));
             self::assertTrue($child->hasChildren());
@@ -150,8 +153,9 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
                     $icon = 'fa fa-times';
                 }
 
-                self::assertNotNull($item = $child->getChild('transition.'.$transition));
+                self::assertNotNull($item = $child->getChild('workflow.transition.'.$transition));
                 self::assertSame('/pull-request/42/workflow/transition/'.$transition.'/apply', $item->getUri());
+                self::assertSame('admin', $item->getExtra('translation_domain'));
                 self::assertSame($icon, $item->getAttribute('icon'));
             }
         }
