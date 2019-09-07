@@ -72,7 +72,7 @@ class WorkflowExtension extends AbstractAdminExtension
         $action,
         AdminInterface $childAdmin = null
     ) {
-        if (!in_array($action, $this->options['render_actions'], true)) {
+        if (null !== $childAdmin || !in_array($action, $this->options['render_actions'], true)) {
             return;
         }
 
