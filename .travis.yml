@@ -29,7 +29,7 @@ before_install:
   - rm -rf composer.lock vendor/
   - if [ "$SYMFONY_VERSION" != "" ]; then composer require "symfony/workflow:${SYMFONY_VERSION}" --no-update; fi;
 
-install: composer install --prefer-dist --no-interaction
+install: COMPOSER_MEMORY_LIMIT=-1 travis_retry composer install --prefer-dist --no-interaction
 
 script:
   - vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml
