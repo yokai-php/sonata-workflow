@@ -11,7 +11,6 @@ use Sonata\AdminBundle\Translator\LabelTranslatorStrategyInterface;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\StateMachine;
-use Symfony\Component\Workflow\SupportStrategy\InstanceOfSupportStrategy;
 use Yokai\SonataWorkflow\Admin\Extension\WorkflowExtension;
 use Yokai\SonataWorkflow\Controller\WorkflowController;
 use Yokai\SonataWorkflow\Tests\PullRequest;
@@ -36,7 +35,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         self::assertSame('/pull-request/{id}/workflow/transition/{transition}/apply', $route->getPath());
         self::assertNotEmpty($defaults = $route->getDefaults());
         self::assertArrayHasKey('_controller', $defaults);
-        self::assertSame(WorkflowController::class.':workflowApplyTransitionAction', $defaults['_controller']);
+        self::assertSame(WorkflowController::class.'::workflowApplyTransitionAction', $defaults['_controller']);
         self::assertArrayHasKey('_sonata_admin', $defaults);
         self::assertSame('pull_request', $defaults['_sonata_admin']);
     }
