@@ -78,13 +78,7 @@ class WorkflowExtension extends AbstractAdminExtension
         }
 
         $subject = $admin->getSubject();
-        if (null === $subject) {
-            return;
-        }
-
-        try {
-            $admin->checkAccess('viewTransitions', $subject);
-        } catch (AccessDeniedException $exception) {
+        if (null === $subject || !$this->isGrantedView($admin, $subject)) {
             return;
         }
 
@@ -210,12 +204,15 @@ class WorkflowExtension extends AbstractAdminExtension
     protected function transitionsItem(MenuItemInterface $menu, AdminInterface $admin, Transition $transition, $subject)
     {
         $options = [
-            'uri' => $this->generateTransitionUri($admin, $transition, $subject),
             'attributes' => [],
             'extras' => [
                 'translation_domain' => $admin->getTranslationDomain(),
             ],
         ];
+
+        if ($this->isGrantedApply($admin, $subject)) {
+            $options['uri'] = $this->generateTransitionUri($admin, $transition, $subject);
+        }
 
         if ($icon = $this->getTransitionIcon($transition)) {
             $options['attributes']['icon'] = $icon;
@@ -255,5 +252,39 @@ class WorkflowExtension extends AbstractAdminExtension
             $subject,
             ['transition' => $transition->getName()]
         );
+    }
+
+    /**
+     * @param AdminInterface $admin
+     * @param object         $subject
+     *
+     * @return bool
+     */
+    protected function isGrantedView(AdminInterface $admin, $subject)
+    {
+        try {
+            $admin->checkAccess('viewTransitions', $subject);
+        } catch (AccessDeniedException $exception) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param AdminInterface $admin
+     * @param object         $subject
+     *
+     * @return bool
+     */
+    protected function isGrantedApply(AdminInterface $admin, $subject)
+    {
+        try {
+            $admin->checkAccess('applyTransitions', $subject);
+        } catch (AccessDeniedException $exception) {
+            return false;
+        }
+
+        return true;
     }
 }

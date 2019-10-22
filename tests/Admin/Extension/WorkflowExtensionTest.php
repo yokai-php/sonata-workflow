@@ -123,7 +123,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider markingToTransition
      */
-    public function testConfigureSideMenu($marking, array $transitions)
+    public function testConfigureSideMenu($marking, array $transitions, $grantedApply)
     {
         $pullRequest = new PullRequest();
         $pullRequest->setMarking($marking);
@@ -137,14 +137,24 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         $admin->getLabelTranslatorStrategy()->willReturn($labelStrategy->reveal());
         $admin->getSubject()->willReturn($pullRequest);
         $admin->checkAccess('viewTransitions', $pullRequest)->shouldBeCalled();
+        if ($grantedApply) {
+            $admin->checkAccess('applyTransitions', $pullRequest)->shouldBeCalledTimes(count($transitions));
+        } else {
+            $admin->checkAccess('applyTransitions', $pullRequest)->willThrow(new AccessDeniedException());
+        }
 
         foreach ($transitions as $transition) {
             $labelStrategy->getLabel($transition, 'workflow', 'transition')
                 ->shouldBeCalledTimes(1)
                 ->willReturn('workflow.transition.'.$transition);
-            $admin->generateObjectUrl('workflow_apply_transition', $pullRequest, ['transition' => $transition])
-                ->shouldBeCalledTimes(1)
-                ->willReturn('/pull-request/42/workflow/transition/'.$transition.'/apply');
+            if ($grantedApply) {
+                $admin->generateObjectUrl('workflow_apply_transition', $pullRequest, ['transition' => $transition])
+                    ->shouldBeCalledTimes(1)
+                    ->willReturn('/pull-request/42/workflow/transition/'.$transition.'/apply');
+            } else {
+                $admin->generateObjectUrl('workflow_apply_transition', $pullRequest, ['transition' => $transition])
+                    ->shouldNotBeCalled();
+            }
         }
 
         $registry = new Registry();
@@ -182,7 +192,11 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
                 }
 
                 self::assertNotNull($item = $child->getChild('workflow.transition.'.$transition));
-                self::assertSame('/pull-request/42/workflow/transition/'.$transition.'/apply', $item->getUri());
+                if ($grantedApply) {
+                    self::assertSame('/pull-request/42/workflow/transition/'.$transition.'/apply', $item->getUri());
+                } else {
+                    self::assertNull($item->getUri());
+                }
                 self::assertSame('admin', $item->getExtra('translation_domain'));
                 self::assertSame($icon, $item->getAttribute('icon'));
             }
@@ -191,10 +205,12 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
 
     public function markingToTransition()
     {
-        return [
-            'opened' => ['opened', ['start_review']],
-            'pending_review' => ['pending_review', ['merge', 'close']],
-            'closed' => ['closed', []],
-        ];
+        foreach ([true, false] as $grantedApply) {
+            $grantedApplyStr = $grantedApply ? 'with links' : 'without links';
+
+            yield 'opened '.$grantedApplyStr => ['opened', ['start_review'], $grantedApply];
+            yield 'pending_review '.$grantedApplyStr => ['pending_review', ['merge', 'close'], $grantedApply];
+            yield 'closed '.$grantedApplyStr => ['closed', [], $grantedApply];
+        }
     }
 }
