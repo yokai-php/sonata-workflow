@@ -7,6 +7,7 @@ use Sonata\AdminBundle\Admin\AbstractAdminExtension;
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Route\RouteCollection;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Workflow\Exception\InvalidArgumentException;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\Transition;
@@ -82,6 +83,12 @@ class WorkflowExtension extends AbstractAdminExtension
         }
 
         try {
+            $admin->checkAccess('viewTransitions', $subject);
+        } catch (AccessDeniedException $exception) {
+            return;
+        }
+
+        try {
             $workflow = $this->getWorkflow($subject, $this->options['workflow_name']);
         } catch (InvalidArgumentException $exception) {
             return;
@@ -94,6 +101,17 @@ class WorkflowExtension extends AbstractAdminExtension
         } else {
             $this->transitionsDropdown($menu, $admin, $transitions, $subject);
         }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getAccessMapping(AdminInterface $admin)
+    {
+        return [
+            'viewTransitions' => $this->options['view_transitions_role'],
+            'applyTransitions' => $this->options['apply_transitions_role'],
+        ];
     }
 
     /**
@@ -124,6 +142,8 @@ class WorkflowExtension extends AbstractAdminExtension
                 'dropdown_transitions_icon' => 'fa fa-code-fork',
                 'transitions_default_icon' => null,
                 'transitions_icons' => [],
+                'view_transitions_role' => 'EDIT',
+                'apply_transitions_role' => 'EDIT',
             ])
             ->setAllowedTypes('render_actions', ['string[]'])
             ->setAllowedTypes('workflow_name', ['string', 'null'])
@@ -134,6 +154,8 @@ class WorkflowExtension extends AbstractAdminExtension
             ->setAllowedTypes('dropdown_transitions_icon', ['string', 'null'])
             ->setAllowedTypes('transitions_default_icon', ['string', 'null'])
             ->setAllowedTypes('transitions_icons', ['array'])
+            ->setAllowedTypes('view_transitions_role', ['string'])
+            ->setAllowedTypes('apply_transitions_role', ['string'])
         ;
     }
 

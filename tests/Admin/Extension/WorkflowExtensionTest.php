@@ -9,6 +9,7 @@ use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Route\RouteCollection;
 use Sonata\AdminBundle\Translator\LabelTranslatorStrategyInterface;
 use Symfony\Component\Routing\Route;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\StateMachine;
 use Yokai\SonataWorkflow\Admin\Extension\WorkflowExtension;
@@ -35,7 +36,8 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         self::assertSame('/pull-request/{id}/workflow/transition/{transition}/apply', $route->getPath());
         self::assertNotEmpty($defaults = $route->getDefaults());
         self::assertArrayHasKey('_controller', $defaults);
-        self::assertSame(WorkflowController::class.'::workflowApplyTransitionAction', $defaults['_controller']);
+        self::assertStringStartsWith(WorkflowController::class, $defaults['_controller']);
+        self::assertStringEndsWith('workflowApplyTransitionAction', $defaults['_controller']);
         self::assertArrayHasKey('_sonata_admin', $defaults);
         self::assertSame('pull_request', $defaults['_sonata_admin']);
     }
@@ -68,6 +70,18 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         self::assertSame('opened', $pullRequest->getMarking());
     }
 
+    public function testAccessMapping()
+    {
+        /** @var AdminInterface|ObjectProphecy $admin */
+        $admin = $this->prophesize(AdminInterface::class);
+
+        $extension = new WorkflowExtension(new Registry());
+        self::assertSame(
+            ['viewTransitions' => 'EDIT', 'applyTransitions' => 'EDIT'],
+            $extension->getAccessMapping($admin->reveal())
+        );
+    }
+
     public function testConfigureSideMenuWithoutSubject()
     {
         /** @var AdminInterface|ObjectProphecy $admin */
@@ -80,11 +94,25 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         self::assertFalse($menu->hasChildren());
     }
 
+    public function testConfigureSideMenuWithoutPermission()
+    {
+        /** @var AdminInterface|ObjectProphecy $admin */
+        $admin = $this->prophesize(AdminInterface::class);
+        $admin->getSubject()->willReturn($pullRequest = new PullRequest());
+        $admin->checkAccess('viewTransitions', $pullRequest)->willThrow(new AccessDeniedException());
+
+        $extension = new WorkflowExtension(new Registry());
+        $extension->configureSideMenu($admin->reveal(), $menu = new MenuItem('root', new MenuFactory()), 'edit');
+
+        self::assertFalse($menu->hasChildren());
+    }
+
     public function testConfigureSideMenuWithoutWorkflow()
     {
         /** @var AdminInterface|ObjectProphecy $admin */
         $admin = $this->prophesize(AdminInterface::class);
-        $admin->getSubject()->willReturn(new PullRequest());
+        $admin->getSubject()->willReturn($pullRequest = new PullRequest());
+        $admin->checkAccess('viewTransitions', $pullRequest)->shouldBeCalled();
 
         $extension = new WorkflowExtension(new Registry());
         $extension->configureSideMenu($admin->reveal(), $menu = new MenuItem('root', new MenuFactory()), 'edit');
@@ -108,6 +136,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         $admin->getTranslationDomain()->willReturn('admin');
         $admin->getLabelTranslatorStrategy()->willReturn($labelStrategy->reveal());
         $admin->getSubject()->willReturn($pullRequest);
+        $admin->checkAccess('viewTransitions', $pullRequest)->shouldBeCalled();
 
         foreach ($transitions as $transition) {
             $labelStrategy->getLabel($transition, 'workflow', 'transition')

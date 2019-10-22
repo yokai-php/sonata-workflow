@@ -124,7 +124,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         $this->admin->getObject(42)->shouldBeCalledTimes(1)
             ->willReturn($subject = new PullRequest());
         $this->admin->setSubject($subject)->shouldBeCalledTimes(1);
-        $this->admin->checkAccess('edit', $subject)->shouldBeCalledTimes(1);
+        $this->admin->checkAccess('applyTransitions', $subject)->shouldBeCalledTimes(1);
         $this->admin->getNormalizedIdentifier($subject)->shouldBeCalledTimes(1)->willReturn(42);
 
         $this->controller()->workflowApplyTransitionAction($this->request);
@@ -144,7 +144,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         $this->admin->getObject(42)->shouldBeCalledTimes(1)
             ->willReturn($subject = new PullRequest());
         $this->admin->setSubject($subject)->shouldBeCalledTimes(1);
-        $this->admin->checkAccess('edit', $subject)->shouldBeCalledTimes(1);
+        $this->admin->checkAccess('applyTransitions', $subject)->shouldBeCalledTimes(1);
         $this->admin->getNormalizedIdentifier($subject)->shouldBeCalledTimes(1)->willReturn(42);
 
         $this->controller()->workflowApplyTransitionAction($this->request);
@@ -167,7 +167,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
             ->willReturn($subject = new PullRequest());
         $this->admin->toString($subject)->shouldBeCalledTimes(1)->willReturn('pr42');
         $this->admin->setSubject($subject)->shouldBeCalledTimes(1);
-        $this->admin->checkAccess('edit', $subject)->shouldBeCalledTimes(1);
+        $this->admin->checkAccess('applyTransitions', $subject)->shouldBeCalledTimes(1);
         $this->admin->getNormalizedIdentifier($subject)->shouldBeCalledTimes(1)->willReturn(42);
 
         $this->controller()->workflowApplyTransitionAction($this->request);
@@ -189,7 +189,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         $this->admin->getObject(42)->shouldBeCalledTimes(1)
             ->willReturn($subject = new PullRequest());
         $this->admin->setSubject($subject)->shouldBeCalledTimes(1);
-        $this->admin->checkAccess('edit', $subject)->shouldBeCalledTimes(1);
+        $this->admin->checkAccess('applyTransitions', $subject)->shouldBeCalledTimes(1);
         $this->admin->getNormalizedIdentifier($subject)->shouldBeCalledTimes(1)->willReturn(42);
         $this->admin->update($subject)->shouldBeCalledTimes(1)->willThrow(new ModelManagerException('phpunit error'));
 
@@ -213,7 +213,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         $this->admin->generateObjectUrl('edit', $subject)->shouldBeCalledTimes(1)
             ->willReturn('/pull-request/42/edit');
         $this->admin->setSubject($subject)->shouldBeCalledTimes(1);
-        $this->admin->checkAccess('edit', $subject)->shouldBeCalledTimes(1);
+        $this->admin->checkAccess('applyTransitions', $subject)->shouldBeCalledTimes(1);
         $this->admin->getNormalizedIdentifier($subject)->shouldBeCalledTimes(1)->willReturn(42);
         $this->admin->hasRoute('edit')->shouldBeCalledTimes(1)->willReturn(false);
         $this->admin->hasRoute('show')->shouldBeCalledTimes(1)->willReturn(false);
@@ -248,7 +248,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
             ->willReturn($subject = new PullRequest());
         $this->admin->toString($subject)->shouldBeCalledTimes(1)->willReturn('pr42');
         $this->admin->setSubject($subject)->shouldBeCalledTimes(1);
-        $this->admin->checkAccess('edit', $subject)->shouldBeCalledTimes(1);
+        $this->admin->checkAccess('applyTransitions', $subject)->shouldBeCalledTimes(1);
         $this->admin->getNormalizedIdentifier($subject)->shouldBeCalledTimes(1)->willReturn(42);
         $this->admin->update($subject)->shouldBeCalledTimes(1)->willReturn($subject);
 
@@ -276,7 +276,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
             ->willReturn($subject = new PullRequest());
         $this->admin->toString($subject)->shouldBeCalledTimes(1)->willReturn('pr42');
         $this->admin->setSubject($subject)->shouldBeCalledTimes(1);
-        $this->admin->checkAccess('edit', $subject)->shouldBeCalledTimes(1);
+        $this->admin->checkAccess('applyTransitions', $subject)->shouldBeCalledTimes(1);
         $this->admin->getNormalizedIdentifier($subject)->shouldBeCalledTimes(1)->willReturn(42);
         $this->admin->hasRoute('edit')->shouldBeCalledTimes(1)->willReturn(false);
         $this->admin->hasRoute('show')->shouldBeCalledTimes(1)->willReturn(false);
@@ -311,7 +311,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         $this->admin->getObject(42)->shouldBeCalledTimes(1)
             ->willReturn($subject = new PullRequest());
         $this->admin->setSubject($subject)->shouldBeCalledTimes(1);
-        $this->admin->checkAccess('edit', $subject)->shouldBeCalledTimes(1);
+        $this->admin->checkAccess('applyTransitions', $subject)->shouldBeCalledTimes(1);
         $this->admin->getNormalizedIdentifier($subject)->shouldBeCalledTimes(1)->willReturn(42);
         $this->admin->update($subject)->shouldNotBeCalled();
 

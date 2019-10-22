@@ -64,7 +64,7 @@ trait WorkflowControllerTrait
         }
 
         $this->admin->setSubject($existingObject);
-        $this->admin->checkAccess('edit', $existingObject);
+        $this->admin->checkAccess('applyTransitions', $existingObject);
 
         $objectId = $this->admin->getNormalizedIdentifier($existingObject);
 
