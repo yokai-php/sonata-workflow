@@ -207,7 +207,7 @@ class PullRequestController extends CRUDController
     {
         switch ($transition) {
             case 'start_review':
-                return $this->startReview($object);
+                return $this->startReview($object, $transition);
         }
 
         return null;
