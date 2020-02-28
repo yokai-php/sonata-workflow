@@ -24,11 +24,11 @@ This library add Symfony Workflow component integration within Sonata Admin.
 
 ### Code
 
-- a Sonata Admin [Extension](https://sonata-project.org/bundles/admin/master/doc/reference/extensions.html) : 
+- a Sonata Admin [Extension](https://sonata-project.org/bundles/admin/master/doc/reference/extensions.html) :
   [WorkflowExtension](src/Admin/Extension/WorkflowExtension.php)
-- a Controller trait : 
+- a Controller trait :
   [WorkflowControllerTrait](src/Controller/WorkflowControllerTrait.php)
-- a Controller : 
+- a Controller :
   [WorkflowController](src/Controller/WorkflowController.php)
 
 
@@ -44,6 +44,7 @@ Configuration
 
 Let say that you have an entity named `PullRequest` that is under workflow and for which you have an admin.
 
+#### symfony/workflow <4.3
 ```yaml
 # config/packages/workflow.yml
 framework:
@@ -74,11 +75,42 @@ framework:
                     to:   closed
 ```
 
+#### symfony/workflow ^4.3|^5.0
+```yaml
+# config/packages/workflow.yml
+framework:
+    workflows:
+        pull_request:
+            type: state_machine
+            marking_store:
+                type: state_machine
+                property: status
+            supports:
+                - App\Entity\PullRequest
+            places:
+                - opened
+                - pending_review
+                - merged
+                - closed
+            initial_marking:
+                - opened
+            transitions:
+                start_review:
+                    from: opened
+                    to:   pending_review
+                merge:
+                    from: pending_review
+                    to:   merged
+                close:
+                    from: pending_review
+                    to:   closed
+```
+
 ### One extension for everything
 
 The extension is usable for many entities and with no configuration.
 
-You only need to create a service for it, configure the controller that will handle the transition action 
+You only need to create a service for it, configure the controller that will handle the transition action
 and configure on which admin you want it available.
 
 For instance :
@@ -108,7 +140,7 @@ sonata_admin:
                 - admin.pull_request
 ```
 
-> **note**: You may noticed that we also registered the controller 
+> **note**: You may noticed that we also registered the controller
 `Yokai\SonataWorkflow\Controller\WorkflowController` as a service.
 It is important, because it needs the workflow registry service to work.
 
@@ -170,12 +202,12 @@ What are these options ?
 Hook into the transition process
 --------------------------------
 
-Let say that when you start a review for a pull request, as a user, 
+Let say that when you start a review for a pull request, as a user,
 you will be asked to enter which users are involved in the review.
 
 To achieve this, you will be asked to fill a dedicated form.
 
-You only need to create a custom controller for your entity admin : 
+You only need to create a custom controller for your entity admin :
 
 ```yaml
 # config/packages/sonata_admin.yml

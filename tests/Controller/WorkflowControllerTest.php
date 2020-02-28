@@ -8,7 +8,6 @@ use Sonata\AdminBundle\Admin\Pool;
 use Sonata\AdminBundle\Exception\LockException;
 use Sonata\AdminBundle\Exception\ModelManagerException;
 use Sonata\AdminBundle\Templating\TemplateRegistryInterface;
-use Symfony\Bundle\FrameworkBundle\Tests\Templating\Helper\Fixtures\StubTranslator;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -20,6 +19,8 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\StateMachine;
+use Yokai\SonataWorkflow\Tests\Fixtures\LegacyWorkflowRegistry;
+use Yokai\SonataWorkflow\Tests\Fixtures\StubTranslator;
 use Yokai\SonataWorkflow\Tests\PullRequest;
 use Yokai\SonataWorkflow\Tests\PullRequestWorkflowController;
 use Yokai\SonataWorkflow\Tests\TestKernel;
@@ -63,7 +64,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
     {
         $this->container = $this->prophesize(ContainerInterface::class);
         $this->admin = $this->prophesize(AdminInterface::class);
-        $this->registry = new Registry();
+        $this->registry = new LegacyWorkflowRegistry();
         $this->flashBag = new FlashBag();
         $this->translator = new StubTranslator();
 

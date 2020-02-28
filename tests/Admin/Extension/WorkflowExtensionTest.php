@@ -12,6 +12,7 @@ use Symfony\Component\Routing\Route;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\StateMachine;
 use Yokai\SonataWorkflow\Admin\Extension\WorkflowExtension;
+use Yokai\SonataWorkflow\Tests\Fixtures\LegacyWorkflowRegistry;
 use Yokai\SonataWorkflow\Controller\WorkflowController;
 use Yokai\SonataWorkflow\Tests\PullRequest;
 
@@ -56,7 +57,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         /** @var AdminInterface|ObjectProphecy $admin */
         $admin = $this->prophesize(AdminInterface::class);
 
-        $registry = new Registry();
+        $registry = new LegacyWorkflowRegistry();
         $registry->add(
             new StateMachine(PullRequest::createWorkflowDefinition()),
             PullRequest::createSupportStrategy()
@@ -118,7 +119,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
                 ->willReturn('/pull-request/42/workflow/transition/'.$transition.'/apply');
         }
 
-        $registry = new Registry();
+        $registry = new LegacyWorkflowRegistry();
         $registry->add(
             new StateMachine(PullRequest::createWorkflowDefinition()),
             PullRequest::createSupportStrategy()
