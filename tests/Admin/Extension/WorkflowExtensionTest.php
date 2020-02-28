@@ -9,6 +9,7 @@ use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Route\RouteCollection;
 use Sonata\AdminBundle\Translator\LabelTranslatorStrategyInterface;
 use Symfony\Component\Routing\Route;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\StateMachine;
 use Yokai\SonataWorkflow\Admin\Extension\WorkflowExtension;
@@ -36,7 +37,8 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         self::assertSame('/pull-request/{id}/workflow/transition/{transition}/apply', $route->getPath());
         self::assertNotEmpty($defaults = $route->getDefaults());
         self::assertArrayHasKey('_controller', $defaults);
-        self::assertSame(WorkflowController::class.'::workflowApplyTransitionAction', $defaults['_controller']);
+        self::assertStringStartsWith(WorkflowController::class, $defaults['_controller']);
+        self::assertStringEndsWith('workflowApplyTransitionAction', $defaults['_controller']);
         self::assertArrayHasKey('_sonata_admin', $defaults);
         self::assertSame('pull_request', $defaults['_sonata_admin']);
     }
@@ -69,6 +71,18 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         self::assertSame('opened', $pullRequest->getMarking());
     }
 
+    public function testAccessMapping()
+    {
+        /** @var AdminInterface|ObjectProphecy $admin */
+        $admin = $this->prophesize(AdminInterface::class);
+
+        $extension = new WorkflowExtension(new Registry());
+        self::assertSame(
+            ['viewTransitions' => 'EDIT', 'applyTransitions' => 'EDIT'],
+            $extension->getAccessMapping($admin->reveal())
+        );
+    }
+
     public function testConfigureSideMenuWithoutSubject()
     {
         /** @var AdminInterface|ObjectProphecy $admin */
@@ -81,11 +95,25 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         self::assertFalse($menu->hasChildren());
     }
 
+    public function testConfigureSideMenuWithoutPermission()
+    {
+        /** @var AdminInterface|ObjectProphecy $admin */
+        $admin = $this->prophesize(AdminInterface::class);
+        $admin->getSubject()->willReturn($pullRequest = new PullRequest());
+        $admin->checkAccess('viewTransitions', $pullRequest)->willThrow(new AccessDeniedException());
+
+        $extension = new WorkflowExtension(new Registry());
+        $extension->configureSideMenu($admin->reveal(), $menu = new MenuItem('root', new MenuFactory()), 'edit');
+
+        self::assertFalse($menu->hasChildren());
+    }
+
     public function testConfigureSideMenuWithoutWorkflow()
     {
         /** @var AdminInterface|ObjectProphecy $admin */
         $admin = $this->prophesize(AdminInterface::class);
-        $admin->getSubject()->willReturn(new PullRequest());
+        $admin->getSubject()->willReturn($pullRequest = new PullRequest());
+        $admin->checkAccess('viewTransitions', $pullRequest)->shouldBeCalled();
 
         $extension = new WorkflowExtension(new Registry());
         $extension->configureSideMenu($admin->reveal(), $menu = new MenuItem('root', new MenuFactory()), 'edit');
@@ -96,7 +124,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider markingToTransition
      */
-    public function testConfigureSideMenu($marking, array $transitions)
+    public function testConfigureSideMenu($marking, array $transitions, $grantedApply)
     {
         $pullRequest = new PullRequest();
         $pullRequest->setMarking($marking);
@@ -109,14 +137,25 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         $admin->getTranslationDomain()->willReturn('admin');
         $admin->getLabelTranslatorStrategy()->willReturn($labelStrategy->reveal());
         $admin->getSubject()->willReturn($pullRequest);
+        $admin->checkAccess('viewTransitions', $pullRequest)->shouldBeCalled();
+        if ($grantedApply) {
+            $admin->checkAccess('applyTransitions', $pullRequest)->shouldBeCalledTimes(count($transitions));
+        } else {
+            $admin->checkAccess('applyTransitions', $pullRequest)->willThrow(new AccessDeniedException());
+        }
 
         foreach ($transitions as $transition) {
             $labelStrategy->getLabel($transition, 'workflow', 'transition')
                 ->shouldBeCalledTimes(1)
                 ->willReturn('workflow.transition.'.$transition);
-            $admin->generateObjectUrl('workflow_apply_transition', $pullRequest, ['transition' => $transition])
-                ->shouldBeCalledTimes(1)
-                ->willReturn('/pull-request/42/workflow/transition/'.$transition.'/apply');
+            if ($grantedApply) {
+                $admin->generateObjectUrl('workflow_apply_transition', $pullRequest, ['transition' => $transition])
+                    ->shouldBeCalledTimes(1)
+                    ->willReturn('/pull-request/42/workflow/transition/'.$transition.'/apply');
+            } else {
+                $admin->generateObjectUrl('workflow_apply_transition', $pullRequest, ['transition' => $transition])
+                    ->shouldNotBeCalled();
+            }
         }
 
         $registry = new LegacyWorkflowRegistry();
@@ -154,7 +193,11 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
                 }
 
                 self::assertNotNull($item = $child->getChild('workflow.transition.'.$transition));
-                self::assertSame('/pull-request/42/workflow/transition/'.$transition.'/apply', $item->getUri());
+                if ($grantedApply) {
+                    self::assertSame('/pull-request/42/workflow/transition/'.$transition.'/apply', $item->getUri());
+                } else {
+                    self::assertNull($item->getUri());
+                }
                 self::assertSame('admin', $item->getExtra('translation_domain'));
                 self::assertSame($icon, $item->getAttribute('icon'));
             }
@@ -163,10 +206,12 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
 
     public function markingToTransition()
     {
-        return [
-            'opened' => ['opened', ['start_review']],
-            'pending_review' => ['pending_review', ['merge', 'close']],
-            'closed' => ['closed', []],
-        ];
+        foreach ([true, false] as $grantedApply) {
+            $grantedApplyStr = $grantedApply ? 'with links' : 'without links';
+
+            yield 'opened '.$grantedApplyStr => ['opened', ['start_review'], $grantedApply];
+            yield 'pending_review '.$grantedApplyStr => ['pending_review', ['merge', 'close'], $grantedApply];
+            yield 'closed '.$grantedApplyStr => ['closed', [], $grantedApply];
+        }
     }
 }

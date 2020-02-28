@@ -7,6 +7,7 @@ use Sonata\AdminBundle\Admin\AbstractAdminExtension;
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Route\RouteCollection;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Workflow\Exception\InvalidArgumentException;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\Transition;
@@ -77,7 +78,7 @@ class WorkflowExtension extends AbstractAdminExtension
         }
 
         $subject = $admin->getSubject();
-        if (null === $subject) {
+        if (null === $subject || !$this->isGrantedView($admin, $subject)) {
             return;
         }
 
@@ -94,6 +95,17 @@ class WorkflowExtension extends AbstractAdminExtension
         } else {
             $this->transitionsDropdown($menu, $admin, $transitions, $subject);
         }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getAccessMapping(AdminInterface $admin)
+    {
+        return [
+            'viewTransitions' => $this->options['view_transitions_role'],
+            'applyTransitions' => $this->options['apply_transitions_role'],
+        ];
     }
 
     /**
@@ -124,6 +136,8 @@ class WorkflowExtension extends AbstractAdminExtension
                 'dropdown_transitions_icon' => 'fa fa-code-fork',
                 'transitions_default_icon' => null,
                 'transitions_icons' => [],
+                'view_transitions_role' => 'EDIT',
+                'apply_transitions_role' => 'EDIT',
             ])
             ->setAllowedTypes('render_actions', ['string[]'])
             ->setAllowedTypes('workflow_name', ['string', 'null'])
@@ -134,6 +148,8 @@ class WorkflowExtension extends AbstractAdminExtension
             ->setAllowedTypes('dropdown_transitions_icon', ['string', 'null'])
             ->setAllowedTypes('transitions_default_icon', ['string', 'null'])
             ->setAllowedTypes('transitions_icons', ['array'])
+            ->setAllowedTypes('view_transitions_role', ['string'])
+            ->setAllowedTypes('apply_transitions_role', ['string'])
         ;
     }
 
@@ -188,12 +204,15 @@ class WorkflowExtension extends AbstractAdminExtension
     protected function transitionsItem(MenuItemInterface $menu, AdminInterface $admin, Transition $transition, $subject)
     {
         $options = [
-            'uri' => $this->generateTransitionUri($admin, $transition, $subject),
             'attributes' => [],
             'extras' => [
                 'translation_domain' => $admin->getTranslationDomain(),
             ],
         ];
+
+        if ($this->isGrantedApply($admin, $subject)) {
+            $options['uri'] = $this->generateTransitionUri($admin, $transition, $subject);
+        }
 
         if ($icon = $this->getTransitionIcon($transition)) {
             $options['attributes']['icon'] = $icon;
@@ -233,5 +252,39 @@ class WorkflowExtension extends AbstractAdminExtension
             $subject,
             ['transition' => $transition->getName()]
         );
+    }
+
+    /**
+     * @param AdminInterface $admin
+     * @param object         $subject
+     *
+     * @return bool
+     */
+    protected function isGrantedView(AdminInterface $admin, $subject)
+    {
+        try {
+            $admin->checkAccess('viewTransitions', $subject);
+        } catch (AccessDeniedException $exception) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param AdminInterface $admin
+     * @param object         $subject
+     *
+     * @return bool
+     */
+    protected function isGrantedApply(AdminInterface $admin, $subject)
+    {
+        try {
+            $admin->checkAccess('applyTransitions', $subject);
+        } catch (AccessDeniedException $exception) {
+            return false;
+        }
+
+        return true;
     }
 }
