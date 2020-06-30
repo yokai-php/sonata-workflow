@@ -2,5 +2,6 @@
 /.led/
 /build/
 /vendor/
+/.phpcs-cache
 /composer.lock
 /docker-compose.yml
