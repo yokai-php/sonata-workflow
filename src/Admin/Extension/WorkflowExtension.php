@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yokai\SonataWorkflow\Admin\Extension;
 
 use Knp\Menu\ItemInterface as MenuItemInterface;
@@ -42,7 +44,7 @@ class WorkflowExtension extends AbstractAdminExtension
     /**
      * @inheritdoc
      */
-    public function configureRoutes(AdminInterface $admin, RouteCollection $collection)
+    public function configureRoutes(AdminInterface $admin, RouteCollection $collection): void
     {
         $collection->add(
             'workflow_apply_transition',
@@ -53,7 +55,7 @@ class WorkflowExtension extends AbstractAdminExtension
     /**
      * @inheritdoc
      */
-    public function alterNewInstance(AdminInterface $admin, $object)
+    public function alterNewInstance(AdminInterface $admin, $object): void
     {
         try {
             $workflow = $this->getWorkflow($object, $this->options['workflow_name']);
@@ -72,7 +74,7 @@ class WorkflowExtension extends AbstractAdminExtension
         MenuItemInterface $menu,
         $action,
         AdminInterface $childAdmin = null
-    ) {
+    ): void {
         if (null !== $childAdmin || !in_array($action, $this->options['render_actions'], true)) {
             return;
         }
@@ -100,7 +102,7 @@ class WorkflowExtension extends AbstractAdminExtension
     /**
      * @inheritdoc
      */
-    public function getAccessMapping(AdminInterface $admin)
+    public function getAccessMapping(AdminInterface $admin): array
     {
         return [
             'viewTransitions' => $this->options['view_transitions_role'],
@@ -115,7 +117,7 @@ class WorkflowExtension extends AbstractAdminExtension
      * @return Workflow
      * @throws InvalidArgumentException
      */
-    protected function getWorkflow($subject, $workflowName = null)
+    protected function getWorkflow($subject, string $workflowName = null): Workflow
     {
         return $this->registry->get($subject, $workflowName);
     }
@@ -123,7 +125,7 @@ class WorkflowExtension extends AbstractAdminExtension
     /**
      * @param OptionsResolver $resolver
      */
-    protected function configureOptions(OptionsResolver $resolver)
+    protected function configureOptions(OptionsResolver $resolver): void
     {
         $resolver
             ->setDefaults([
@@ -157,7 +159,7 @@ class WorkflowExtension extends AbstractAdminExtension
      * @param MenuItemInterface $menu
      * @param AdminInterface    $admin
      */
-    protected function noTransitions(MenuItemInterface $menu, AdminInterface $admin)
+    protected function noTransitions(MenuItemInterface $menu, AdminInterface $admin): void
     {
         if ($this->options['no_transition_display']) {
             $menu->addChild($this->options['no_transition_label'], [
@@ -173,13 +175,17 @@ class WorkflowExtension extends AbstractAdminExtension
     }
 
     /**
-     * @param MenuItemInterface $menu
-     * @param AdminInterface    $admin
-     * @param Transition[]      $transitions
-     * @param object            $subject
+     * @param MenuItemInterface     $menu
+     * @param AdminInterface        $admin
+     * @param iterable|Transition[] $transitions
+     * @param object                $subject
      */
-    protected function transitionsDropdown(MenuItemInterface $menu, AdminInterface $admin, $transitions, $subject)
-    {
+    protected function transitionsDropdown(
+        MenuItemInterface $menu,
+        AdminInterface $admin,
+        iterable $transitions,
+        $subject
+    ): void {
         $workflowMenu = $menu->addChild($this->options['dropdown_transitions_label'], [
             'attributes' => [
                 'dropdown' => true,
@@ -201,8 +207,12 @@ class WorkflowExtension extends AbstractAdminExtension
      * @param Transition        $transition
      * @param object            $subject
      */
-    protected function transitionsItem(MenuItemInterface $menu, AdminInterface $admin, Transition $transition, $subject)
-    {
+    protected function transitionsItem(
+        MenuItemInterface $menu,
+        AdminInterface $admin,
+        Transition $transition,
+        $subject
+    ): void {
         $options = [
             'attributes' => [],
             'extras' => [
@@ -229,7 +239,7 @@ class WorkflowExtension extends AbstractAdminExtension
      *
      * @return string|null
      */
-    protected function getTransitionIcon(Transition $transition)
+    protected function getTransitionIcon(Transition $transition): ?string
     {
         if (isset($this->options['transitions_icons'][$transition->getName()])) {
             return $this->options['transitions_icons'][$transition->getName()];
@@ -245,7 +255,7 @@ class WorkflowExtension extends AbstractAdminExtension
      *
      * @return string
      */
-    protected function generateTransitionUri(AdminInterface $admin, Transition $transition, $subject)
+    protected function generateTransitionUri(AdminInterface $admin, Transition $transition, $subject): string
     {
         return $admin->generateObjectUrl(
             'workflow_apply_transition',
@@ -260,7 +270,7 @@ class WorkflowExtension extends AbstractAdminExtension
      *
      * @return bool
      */
-    protected function isGrantedView(AdminInterface $admin, $subject)
+    protected function isGrantedView(AdminInterface $admin, $subject): bool
     {
         try {
             $admin->checkAccess('viewTransitions', $subject);
@@ -277,7 +287,7 @@ class WorkflowExtension extends AbstractAdminExtension
      *
      * @return bool
      */
-    protected function isGrantedApply(AdminInterface $admin, $subject)
+    protected function isGrantedApply(AdminInterface $admin, $subject): bool
     {
         try {
             $admin->checkAccess('applyTransitions', $subject);

@@ -1,9 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yokai\SonataWorkflow\Tests\Admin\Extension;
 
+use Generator;
 use Knp\Menu\MenuFactory;
 use Knp\Menu\MenuItem;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Prophecy\ObjectProphecy;
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Route\RouteCollection;
@@ -13,16 +17,15 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\StateMachine;
 use Yokai\SonataWorkflow\Admin\Extension\WorkflowExtension;
-use Yokai\SonataWorkflow\Tests\Fixtures\LegacyWorkflowRegistry;
 use Yokai\SonataWorkflow\Controller\WorkflowController;
 use Yokai\SonataWorkflow\Tests\PullRequest;
 
 /**
  * @author Yann Eugoné <eugone.yann@gmail.com>
  */
-class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
+class WorkflowExtensionTest extends TestCase
 {
-    public function testConfigureRoutes()
+    public function testConfigureRoutes(): void
     {
         /** @var AdminInterface|ObjectProphecy $admin */
         $admin = $this->prophesize(AdminInterface::class);
@@ -43,7 +46,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         self::assertSame('pull_request', $defaults['_sonata_admin']);
     }
 
-    public function testAlterNewInstanceWithoutWorkflow()
+    public function testAlterNewInstanceWithoutWorkflow(): void
     {
         /** @var AdminInterface|ObjectProphecy $admin */
         $admin = $this->prophesize(AdminInterface::class);
@@ -54,13 +57,13 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         self::assertNull($pullRequest->getMarking());
     }
 
-    public function testAlterNewInstance()
+    public function testAlterNewInstance(): void
     {
         /** @var AdminInterface|ObjectProphecy $admin */
         $admin = $this->prophesize(AdminInterface::class);
 
-        $registry = new LegacyWorkflowRegistry();
-        $registry->add(
+        $registry = new Registry();
+        $registry->addWorkflow(
             new StateMachine(PullRequest::createWorkflowDefinition()),
             PullRequest::createSupportStrategy()
         );
@@ -71,7 +74,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         self::assertSame('opened', $pullRequest->getMarking());
     }
 
-    public function testAccessMapping()
+    public function testAccessMapping(): void
     {
         /** @var AdminInterface|ObjectProphecy $admin */
         $admin = $this->prophesize(AdminInterface::class);
@@ -83,7 +86,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function testConfigureSideMenuWithoutSubject()
+    public function testConfigureSideMenuWithoutSubject(): void
     {
         /** @var AdminInterface|ObjectProphecy $admin */
         $admin = $this->prophesize(AdminInterface::class);
@@ -95,7 +98,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         self::assertFalse($menu->hasChildren());
     }
 
-    public function testConfigureSideMenuWithoutPermission()
+    public function testConfigureSideMenuWithoutPermission(): void
     {
         /** @var AdminInterface|ObjectProphecy $admin */
         $admin = $this->prophesize(AdminInterface::class);
@@ -108,7 +111,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         self::assertFalse($menu->hasChildren());
     }
 
-    public function testConfigureSideMenuWithoutWorkflow()
+    public function testConfigureSideMenuWithoutWorkflow(): void
     {
         /** @var AdminInterface|ObjectProphecy $admin */
         $admin = $this->prophesize(AdminInterface::class);
@@ -124,7 +127,7 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider markingToTransition
      */
-    public function testConfigureSideMenu($marking, array $transitions, $grantedApply)
+    public function testConfigureSideMenu(string $marking, array $transitions, bool $grantedApply): void
     {
         $pullRequest = new PullRequest();
         $pullRequest->setMarking($marking);
@@ -147,19 +150,19 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         foreach ($transitions as $transition) {
             $labelStrategy->getLabel($transition, 'workflow', 'transition')
                 ->shouldBeCalledTimes(1)
-                ->willReturn('workflow.transition.'.$transition);
+                ->willReturn('workflow.transition.' . $transition);
             if ($grantedApply) {
                 $admin->generateObjectUrl('workflow_apply_transition', $pullRequest, ['transition' => $transition])
                     ->shouldBeCalledTimes(1)
-                    ->willReturn('/pull-request/42/workflow/transition/'.$transition.'/apply');
+                    ->willReturn('/pull-request/42/workflow/transition/' . $transition . '/apply');
             } else {
                 $admin->generateObjectUrl('workflow_apply_transition', $pullRequest, ['transition' => $transition])
                     ->shouldNotBeCalled();
             }
         }
 
-        $registry = new LegacyWorkflowRegistry();
-        $registry->add(
+        $registry = new Registry();
+        $registry->addWorkflow(
             new StateMachine(PullRequest::createWorkflowDefinition()),
             PullRequest::createSupportStrategy()
         );
@@ -192,9 +195,9 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
                     $icon = 'fa fa-times';
                 }
 
-                self::assertNotNull($item = $child->getChild('workflow.transition.'.$transition));
+                self::assertNotNull($item = $child->getChild('workflow.transition.' . $transition));
                 if ($grantedApply) {
-                    self::assertSame('/pull-request/42/workflow/transition/'.$transition.'/apply', $item->getUri());
+                    self::assertSame('/pull-request/42/workflow/transition/' . $transition . '/apply', $item->getUri());
                 } else {
                     self::assertNull($item->getUri());
                 }
@@ -204,14 +207,14 @@ class WorkflowExtensionTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function markingToTransition()
+    public function markingToTransition(): Generator
     {
         foreach ([true, false] as $grantedApply) {
             $grantedApplyStr = $grantedApply ? 'with links' : 'without links';
 
-            yield 'opened '.$grantedApplyStr => ['opened', ['start_review'], $grantedApply];
-            yield 'pending_review '.$grantedApplyStr => ['pending_review', ['merge', 'close'], $grantedApply];
-            yield 'closed '.$grantedApplyStr => ['closed', [], $grantedApply];
+            yield 'opened ' . $grantedApplyStr => ['opened', ['start_review'], $grantedApply];
+            yield 'pending_review ' . $grantedApplyStr => ['pending_review', ['merge', 'close'], $grantedApply];
+            yield 'closed ' . $grantedApplyStr => ['closed', [], $grantedApply];
         }
     }
 }

@@ -6,10 +6,6 @@ Yokai Sonata Workflow
 [![Total Downloads](https://poser.pugx.org/yokai/sonata-workflow/downloads)](https://packagist.org/packages/yokai/sonata-workflow)
 [![License](https://poser.pugx.org/yokai/sonata-workflow/license)](https://packagist.org/packages/yokai/sonata-workflow)
 
-[![Build Status](https://api.travis-ci.org/yokai-php/sonata-workflow.png?branch=master)](https://travis-ci.org/yokai-php/sonata-workflow)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/yokai-php/sonata-workflow/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/yokai-php/sonata-workflow/?branch=master)
-[![Code Coverage](https://scrutinizer-ci.com/g/yokai-php/sonata-workflow/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/yokai-php/sonata-workflow/?branch=master)
-
 
 Introduction
 ------------
@@ -44,38 +40,6 @@ Configuration
 
 Let say that you have an entity named `PullRequest` that is under workflow and for which you have an admin.
 
-#### symfony/workflow <4.3
-```yaml
-# config/packages/workflow.yml
-framework:
-    workflows:
-        pull_request:
-            type: state_machine
-            marking_store:
-                type: single_state
-                arguments:
-                    - status
-            supports:
-                - App\Entity\PullRequest
-            places:
-                - opened
-                - pending_review
-                - merged
-                - closed
-            initial_place: opened
-            transitions:
-                start_review:
-                    from: opened
-                    to:   pending_review
-                merge:
-                    from: pending_review
-                    to:   merged
-                close:
-                    from: pending_review
-                    to:   closed
-```
-
-#### symfony/workflow ^4.3|^5.0
 ```yaml
 # config/packages/workflow.yml
 framework:
@@ -224,18 +188,21 @@ services:
 <?php
 // src/Admin/Controller/PullRequestController.php
 
+declare(strict_types=1);
+
 namespace App\Admin\Controller;
 
 use App\Entity\PullRequest;
 use App\Form\PullRequest\StartReviewType;
 use Sonata\AdminBundle\Controller\CRUDController;
+use Symfony\Component\HttpFoundation\Response;
 use Yokai\SonataWorkflow\Controller\WorkflowControllerTrait;
 
 class PullRequestController extends CRUDController
 {
     use WorkflowControllerTrait;
 
-    protected function preApplyTransition($object, $transition)
+    protected function preApplyTransition($object, string $transition): ?Response
     {
         switch ($transition) {
             case 'start_review':
@@ -245,7 +212,7 @@ class PullRequestController extends CRUDController
         return null;
     }
 
-    protected function startReview(PullRequest $object, $transition)
+    protected function startReview(PullRequest $object, string $transition): ?Response
     {
         $form = $this->createForm(
             StartReviewType::class,

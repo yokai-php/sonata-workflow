@@ -1,27 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yokai\SonataWorkflow\Tests;
 
 use Symfony\Component\Workflow\Definition;
-use Symfony\Component\Workflow\SupportStrategy\ClassInstanceSupportStrategy;
 use Symfony\Component\Workflow\SupportStrategy\InstanceOfSupportStrategy;
+use Symfony\Component\Workflow\SupportStrategy\WorkflowSupportStrategyInterface;
 use Symfony\Component\Workflow\Transition;
 
 class PullRequest
 {
     private $marking;
 
-    public function getMarking()
+    public function getMarking(): ?string
     {
         return $this->marking;
     }
 
-    public function setMarking($marking)
+    public function setMarking(string $marking): void
     {
         $this->marking = $marking;
     }
 
-    public static function createWorkflowDefinition()
+    public static function createWorkflowDefinition(): Definition
     {
         return new Definition(
             ['opened', 'pending_review', 'merged', 'closed'],
@@ -34,12 +36,8 @@ class PullRequest
         );
     }
 
-    public static function createSupportStrategy()
+    public static function createSupportStrategy(): WorkflowSupportStrategyInterface
     {
-        if (class_exists(InstanceOfSupportStrategy::class)) {
-            return new InstanceOfSupportStrategy(__CLASS__);
-        }
-
-        return new ClassInstanceSupportStrategy(__CLASS__);
+        return new InstanceOfSupportStrategy(__CLASS__);
     }
 }

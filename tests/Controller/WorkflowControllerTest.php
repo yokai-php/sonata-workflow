@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yokai\SonataWorkflow\Tests\Controller;
 
+use PHPUnit\Framework\TestCase;
 use Prophecy\Prophecy\ObjectProphecy;
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Admin\Pool;
@@ -17,9 +20,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\StateMachine;
-use Yokai\SonataWorkflow\Tests\Fixtures\LegacyWorkflowRegistry;
 use Yokai\SonataWorkflow\Tests\Fixtures\StubTranslator;
 use Yokai\SonataWorkflow\Tests\PullRequest;
 use Yokai\SonataWorkflow\Tests\PullRequestWorkflowController;
@@ -28,7 +32,7 @@ use Yokai\SonataWorkflow\Tests\TestKernel;
 /**
  * @author Yann Eugoné <eugone.yann@gmail.com>
  */
-class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
+class WorkflowControllerTest extends TestCase
 {
     /**
      * @var ContainerInterface|ObjectProphecy
@@ -55,18 +59,13 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
      */
     private $flashBag;
 
-    /**
-     * @var StubTranslator
-     */
-    private $translator;
-
     public function setUp()
     {
         $this->container = $this->prophesize(ContainerInterface::class);
         $this->admin = $this->prophesize(AdminInterface::class);
-        $this->registry = new LegacyWorkflowRegistry();
+        $this->registry = new Registry();
         $this->flashBag = new FlashBag();
-        $this->translator = new StubTranslator();
+        $translator = new StubTranslator();
 
         $stack = new RequestStack();
         $stack->push($this->request = new Request());
@@ -83,10 +82,12 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         $this->container->get('workflow.registry')->willReturn($this->registry);
         $this->container->get('kernel')->willReturn(new TestKernel());
         $this->container->has('session')->willReturn(true);
-        $this->container->get('session')->willReturn(new Session(new MockArraySessionStorage(), null, $this->flashBag));
-        $this->container->get('translator')->willReturn($this->translator);
+        $this->container->get('session')
+            ->willReturn(new Session(new MockArraySessionStorage(), null, $this->flashBag));
+        $this->container->get('translator')->willReturn($translator);
         $this->container->has('logger')->willReturn(false);
-        $this->container->get('admin.pull_request.template_registry')->willReturn($this->prophesize(TemplateRegistryInterface::class)->reveal());
+        $this->container->get('admin.pull_request.template_registry')
+            ->willReturn($this->prophesize(TemplateRegistryInterface::class)->reveal());
 
         $this->admin->isChild()->willReturn(false);
         $this->admin->setRequest($this->request)->willReturn(null);
@@ -94,34 +95,22 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         $this->admin->getCode()->willReturn('admin.pull_request');
     }
 
-    public function tearDown()
+    public function testWorkflowApplyTransitionActionObjectNotFound(): void
     {
-        $this->container =
-        $this->request =
-        $this->admin =
-        $this->registry =
-        $this->flashBag =
-        $this->translator = null;
-    }
+        $this->expectException(NotFoundHttpException::class);
+        $this->expectExceptionMessage('unable to find the object with id: 42');
 
-    /**
-     * @expectedException \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
-     * @expectedExceptionMessage unable to find the object with id: 42
-     */
-    public function testWorkflowApplyTransitionActionObjectNotFound()
-    {
         $this->admin->getObject(42)->shouldBeCalledTimes(1)
             ->willReturn(null);
 
         $this->controller()->workflowApplyTransitionAction($this->request);
     }
 
-    /**
-     * @expectedException \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
-     * @expectedExceptionMessage Not found
-     */
-    public function testWorkflowApplyTransitionActionWorkflowNotFound()
+    public function testWorkflowApplyTransitionActionWorkflowNotFound(): void
     {
+        $this->expectException(NotFoundHttpException::class);
+        $this->expectExceptionMessage('Not found');
+
         $this->admin->getObject(42)->shouldBeCalledTimes(1)
             ->willReturn($subject = new PullRequest());
         $this->admin->setSubject($subject)->shouldBeCalledTimes(1);
@@ -131,13 +120,12 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         $this->controller()->workflowApplyTransitionAction($this->request);
     }
 
-    /**
-     * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
-     * @expectedExceptionMessage missing transition to apply
-     */
-    public function testWorkflowApplyTransitionActionMissingTransition()
+    public function testWorkflowApplyTransitionActionMissingTransition(): void
     {
-        $this->registry->add(
+        $this->expectException(BadRequestHttpException::class);
+        $this->expectExceptionMessage('missing transition to apply');
+
+        $this->registry->addWorkflow(
             new StateMachine(PullRequest::createWorkflowDefinition()),
             PullRequest::createSupportStrategy()
         );
@@ -151,13 +139,12 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         $this->controller()->workflowApplyTransitionAction($this->request);
     }
 
-    /**
-     * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
-     * @expectedExceptionMessage transition transition_that_do_not_exists could not be applied to object pr42
-     */
-    public function testWorkflowApplyTransitionActionTransitionException()
+    public function testWorkflowApplyTransitionActionTransitionException(): void
     {
-        $this->registry->add(
+        $this->expectException(BadRequestHttpException::class);
+        $this->expectExceptionMessage('transition transition_that_do_not_exists could not be applied to object pr42');
+
+        $this->registry->addWorkflow(
             new StateMachine(PullRequest::createWorkflowDefinition()),
             PullRequest::createSupportStrategy()
         );
@@ -174,13 +161,12 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         $this->controller()->workflowApplyTransitionAction($this->request);
     }
 
-    /**
-     * @expectedException \Sonata\AdminBundle\Exception\ModelManagerException
-     * @expectedExceptionMessage phpunit error
-     */
-    public function testWorkflowApplyTransitionActionModelManagerException()
+    public function testWorkflowApplyTransitionActionModelManagerException(): void
     {
-        $this->registry->add(
+        $this->expectException(ModelManagerException::class);
+        $this->expectExceptionMessage('phpunit error');
+
+        $this->registry->addWorkflow(
             new StateMachine(PullRequest::createWorkflowDefinition()),
             PullRequest::createSupportStrategy()
         );
@@ -199,9 +185,9 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         $this->controller()->workflowApplyTransitionAction($this->request);
     }
 
-    public function testWorkflowApplyTransitionActionLockException()
+    public function testWorkflowApplyTransitionActionLockException(): void
     {
-        $this->registry->add(
+        $this->registry->addWorkflow(
             new StateMachine(PullRequest::createWorkflowDefinition()),
             PullRequest::createSupportStrategy()
         );
@@ -235,9 +221,9 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         self::assertSame('[trans]flash_lock_error[/trans]', $errors[0]);
     }
 
-    public function testWorkflowApplyTransitionActionSuccessXmlHttp()
+    public function testWorkflowApplyTransitionActionSuccessXmlHttp(): void
     {
-        $this->registry->add(
+        $this->registry->addWorkflow(
             new StateMachine(PullRequest::createWorkflowDefinition()),
             PullRequest::createSupportStrategy()
         );
@@ -264,9 +250,9 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         self::assertCount(0, $errors);
     }
 
-    public function testWorkflowApplyTransitionActionSuccessHttp()
+    public function testWorkflowApplyTransitionActionSuccessHttp(): void
     {
-        $this->registry->add(
+        $this->registry->addWorkflow(
             new StateMachine(PullRequest::createWorkflowDefinition()),
             PullRequest::createSupportStrategy()
         );
@@ -300,9 +286,9 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         self::assertSame('[trans]flash_edit_success[/trans]', $successes[0]);
     }
 
-    public function testWorkflowApplyTransitionActionPreApply()
+    public function testWorkflowApplyTransitionActionPreApply(): void
     {
-        $this->registry->add(
+        $this->registry->addWorkflow(
             new StateMachine(PullRequest::createWorkflowDefinition()),
             PullRequest::createSupportStrategy()
         );
@@ -330,7 +316,7 @@ class WorkflowControllerTest extends \PHPUnit_Framework_TestCase
         self::assertCount(0, $successes);
     }
 
-    private function controller()
+    private function controller(): PullRequestWorkflowController
     {
         $controller = new PullRequestWorkflowController();
 

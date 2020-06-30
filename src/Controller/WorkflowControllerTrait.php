@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yokai\SonataWorkflow\Controller;
 
 use Psr\Container\ContainerInterface;
@@ -43,7 +45,7 @@ trait WorkflowControllerTrait
      *
      * @required Symfony DI autowiring
      */
-    public function setWorkflowRegistry(Registry $workflowRegistry)
+    public function setWorkflowRegistry(Registry $workflowRegistry): void
     {
         $this->workflowRegistry = $workflowRegistry;
     }
@@ -53,7 +55,7 @@ trait WorkflowControllerTrait
      *
      * @return Response
      */
-    public function workflowApplyTransitionAction(Request $request)
+    public function workflowApplyTransitionAction(Request $request): Response
     {
         $id = $request->get($this->admin->getIdParameter());
 
@@ -153,7 +155,7 @@ trait WorkflowControllerTrait
      * @return Workflow
      * @throws InvalidArgumentException
      */
-    protected function getWorkflow($object)
+    protected function getWorkflow($object): Workflow
     {
         $registry = $this->workflowRegistry;
         if ($registry === null) {
@@ -183,7 +185,7 @@ trait WorkflowControllerTrait
      *
      * @return null|Response
      */
-    protected function preApplyTransition($object, $transition)
+    protected function preApplyTransition($object, string $transition): ?Response
     {
         return null;
     }

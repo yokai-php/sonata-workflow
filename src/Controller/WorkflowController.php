@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yokai\SonataWorkflow\Controller;
 
 use Sonata\AdminBundle\Controller\CRUDController;
