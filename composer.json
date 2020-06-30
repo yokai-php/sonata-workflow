@@ -36,7 +36,8 @@
   "minimum-stability": "stable",
   "extra": {
     "branch-alias": {
-      "dev-0.x": "0.3.x-dev"
+      "dev-0.x": "0.4.x-dev",
+      "dev-0.3": "0.3.x-dev"
     }
   }
 }
