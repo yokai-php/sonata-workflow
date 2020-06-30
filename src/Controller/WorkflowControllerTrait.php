@@ -124,7 +124,8 @@ trait WorkflowControllerTrait
                     'transition %s could not be applied to object %s',
                     $transition,
                     $this->admin->toString($existingObject)
-                ), $e
+                ),
+                $e
             );
         } catch (ModelManagerException $e) {
             $this->handleModelManagerException($e);
@@ -163,8 +164,9 @@ trait WorkflowControllerTrait
                     $registry = $this->getContainer()->get('workflow.registry');
                 }
             } catch (ServiceNotFoundException $exception) {
-                throw new \LogicException('Could not find the "workflow.registry" service. '.
-                    'You should either provide it via setter injection in your controller service definition '.
+                throw new \LogicException(
+                    'Could not find the "workflow.registry" service. ' .
+                    'You should either provide it via setter injection in your controller service definition ' .
                     'or make it public in your project.',
                     0,
                     $exception
