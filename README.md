@@ -1,10 +1,15 @@
 Yokai Sonata Workflow
 =====================
 
-[![Latest Stable Version](https://poser.pugx.org/yokai/sonata-workflow/v/stable)](https://packagist.org/packages/yokai/sonata-workflow)
-[![Latest Unstable Version](https://poser.pugx.org/yokai/sonata-workflow/v/unstable)](https://packagist.org/packages/yokai/sonata-workflow)
-[![Total Downloads](https://poser.pugx.org/yokai/sonata-workflow/downloads)](https://packagist.org/packages/yokai/sonata-workflow)
-[![License](https://poser.pugx.org/yokai/sonata-workflow/license)](https://packagist.org/packages/yokai/sonata-workflow)
+[![Tests](https://img.shields.io/github/workflow/status/yokai-php/sonata-workflow/Tests?style=flat-square&label=tests)](https://github.com/yokai-php/sonata-workflow/actions)
+[![Coverage](https://img.shields.io/codecov/c/github/yokai-php/sonata-workflow?style=flat-square)](https://codecov.io/gh/yokai-php/sonata-workflow)
+[![Contributors](https://img.shields.io/github/contributors/yokai-php/sonata-workflow?style=flat-square)](https://github.com/yokai-php/sonata-workflow/graphs/contributors)
+
+[![License](https://img.shields.io/packagist/l/yokai/sonata-workflow?style=flat-square)](https://packagist.org/packages/yokai/sonata-workflow/stats)
+[![Latest Stable Version](https://img.shields.io/packagist/v/yokai/sonata-workflow?style=flat-square)](https://packagist.org/packages/yokai/sonata-workflow)
+[![Current Unstable Version](https://img.shields.io/packagist/v/yokai/sonata-workflow?include_prereleases&style=flat-square)](https://packagist.org/packages/yokai/sonata-workflow)
+[![Downloads Monthly](https://img.shields.io/packagist/dm/yokai/sonata-workflow?style=flat-square)](https://packagist.org/packages/yokai/sonata-workflow/stats)
+[![Total Downloads](https://img.shields.io/packagist/dt/yokai/sonata-workflow?style=flat-square)](https://packagist.org/packages/yokai/sonata-workflow/stats)
 
 
 Introduction
