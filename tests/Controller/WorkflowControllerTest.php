@@ -59,8 +59,10 @@ class WorkflowControllerTest extends TestCase
      */
     private $flashBag;
 
-    public function setUp()
+    protected function setUp(): void
     {
+        parent::setUp();
+
         $this->container = $this->prophesize(ContainerInterface::class);
         $this->admin = $this->prophesize(AdminInterface::class);
         $this->registry = new Registry();
