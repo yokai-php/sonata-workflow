@@ -80,6 +80,7 @@ class WorkflowControllerTest extends TestCase
 
         $this->container->get('request_stack')->willReturn($stack);
         $this->container->get('sonata.admin.pool')->willReturn($pool);
+        $this->container->get('sonata.admin.pool.do-not-use')->willReturn($pool);
         $this->container->get('admin.pull_request')->willReturn($this->admin->reveal());
         $this->container->get('workflow.registry')->willReturn($this->registry);
         $this->container->get('kernel')->willReturn(new TestKernel());

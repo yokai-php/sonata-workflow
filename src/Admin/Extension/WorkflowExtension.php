@@ -68,12 +68,26 @@ class WorkflowExtension extends AbstractAdminExtension
 
     /**
      * @inheritdoc
+     *
+     * TODO [SONATA 4.x] remove this method
      */
     public function configureSideMenu(
         AdminInterface $admin,
         MenuItemInterface $menu,
         $action,
         AdminInterface $childAdmin = null
+    ): void {
+        $this->configureTabMenu($admin, $menu, $action, $childAdmin);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function configureTabMenu(
+        AdminInterface $admin,
+        MenuItemInterface $menu,
+        $action,
+        ?AdminInterface $childAdmin = null
     ): void {
         if (null !== $childAdmin || !in_array($action, $this->options['render_actions'], true)) {
             return;
