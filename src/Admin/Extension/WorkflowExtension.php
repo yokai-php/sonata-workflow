@@ -7,7 +7,7 @@ namespace Yokai\SonataWorkflow\Admin\Extension;
 use Knp\Menu\ItemInterface as MenuItemInterface;
 use Sonata\AdminBundle\Admin\AbstractAdminExtension;
 use Sonata\AdminBundle\Admin\AdminInterface;
-use Sonata\AdminBundle\Route\RouteCollection;
+use Sonata\AdminBundle\Route\RouteCollectionInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Workflow\Exception\InvalidArgumentException;
@@ -44,7 +44,7 @@ class WorkflowExtension extends AbstractAdminExtension
     /**
      * @inheritdoc
      */
-    public function configureRoutes(AdminInterface $admin, RouteCollection $collection): void
+    public function configureRoutes(AdminInterface $admin, RouteCollectionInterface $collection): void
     {
         $collection->add(
             'workflow_apply_transition',
