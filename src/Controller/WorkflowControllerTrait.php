@@ -146,7 +146,7 @@ trait WorkflowControllerTrait
             );
         }
 
-        return $this->redirectTo($existingObject);
+        return $this->redirectTo($request, $existingObject);
     }
 
     /**
