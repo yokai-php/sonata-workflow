@@ -100,7 +100,7 @@ trait WorkflowControllerTrait
             $workflow->apply($existingObject, $transition);
             $existingObject = $this->admin->update($existingObject);
 
-            if ($this->isXmlHttpRequest()) {
+            if ($this->isXmlHttpRequest($request)) {
                 return $this->renderJson(
                     [
                         'result' => 'ok',
@@ -146,7 +146,7 @@ trait WorkflowControllerTrait
             );
         }
 
-        return $this->redirectTo($existingObject);
+        return $this->redirectTo($request, $existingObject);
     }
 
     /**
