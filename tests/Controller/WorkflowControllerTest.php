@@ -70,6 +70,7 @@ class WorkflowControllerTest extends TestCase
 
         $this->container->getParameterBag()->set('kernel.debug', true);
         $this->container->set('request_stack', $stack);
+        $this->container->set('session', $this->request->getSession());
         $this->container->set('parameter_bag', $this->container->getParameterBag());
         $this->container->set('admin.pull_request', $this->admin->reveal());
         $this->container->set('workflow.registry', $this->registry);
