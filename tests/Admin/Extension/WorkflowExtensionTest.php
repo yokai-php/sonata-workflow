@@ -8,6 +8,7 @@ use Generator;
 use Knp\Menu\MenuFactory;
 use Knp\Menu\MenuItem;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Route\RouteCollection;
@@ -25,6 +26,8 @@ use Yokai\SonataWorkflow\Tests\PullRequest;
  */
 class WorkflowExtensionTest extends TestCase
 {
+    use ProphecyTrait;
+
     public function testConfigureRoutes(): void
     {
         /** @var AdminInterface|ObjectProphecy $admin */
@@ -86,19 +89,19 @@ class WorkflowExtensionTest extends TestCase
         );
     }
 
-    public function testConfigureSideMenuWithoutSubject(): void
+    public function testConfigureTabMenuWithoutSubject(): void
     {
         /** @var AdminInterface|ObjectProphecy $admin */
         $admin = $this->prophesize(AdminInterface::class);
-        $admin->getSubject()->willReturn(null);
+        $admin->getSubject()->willThrow(new \LogicException());
 
         $extension = new WorkflowExtension(new Registry());
-        $extension->configureSideMenu($admin->reveal(), $menu = new MenuItem('root', new MenuFactory()), 'edit');
+        $extension->configureTabMenu($admin->reveal(), $menu = new MenuItem('root', new MenuFactory()), 'edit');
 
         self::assertFalse($menu->hasChildren());
     }
 
-    public function testConfigureSideMenuWithoutPermission(): void
+    public function testConfigureTabMenuWithoutPermission(): void
     {
         /** @var AdminInterface|ObjectProphecy $admin */
         $admin = $this->prophesize(AdminInterface::class);
@@ -106,12 +109,12 @@ class WorkflowExtensionTest extends TestCase
         $admin->checkAccess('viewTransitions', $pullRequest)->willThrow(new AccessDeniedException());
 
         $extension = new WorkflowExtension(new Registry());
-        $extension->configureSideMenu($admin->reveal(), $menu = new MenuItem('root', new MenuFactory()), 'edit');
+        $extension->configureTabMenu($admin->reveal(), $menu = new MenuItem('root', new MenuFactory()), 'edit');
 
         self::assertFalse($menu->hasChildren());
     }
 
-    public function testConfigureSideMenuWithoutWorkflow(): void
+    public function testConfigureTabMenuWithoutWorkflow(): void
     {
         /** @var AdminInterface|ObjectProphecy $admin */
         $admin = $this->prophesize(AdminInterface::class);
@@ -119,7 +122,7 @@ class WorkflowExtensionTest extends TestCase
         $admin->checkAccess('viewTransitions', $pullRequest)->shouldBeCalled();
 
         $extension = new WorkflowExtension(new Registry());
-        $extension->configureSideMenu($admin->reveal(), $menu = new MenuItem('root', new MenuFactory()), 'edit');
+        $extension->configureTabMenu($admin->reveal(), $menu = new MenuItem('root', new MenuFactory()), 'edit');
 
         self::assertFalse($menu->hasChildren());
     }
@@ -127,7 +130,7 @@ class WorkflowExtensionTest extends TestCase
     /**
      * @dataProvider markingToTransition
      */
-    public function testConfigureSideMenu(string $marking, array $transitions, bool $grantedApply): void
+    public function testConfigureTabMenu(string $marking, array $transitions, bool $grantedApply): void
     {
         $pullRequest = new PullRequest();
         $pullRequest->setMarking($marking);
@@ -172,7 +175,7 @@ class WorkflowExtensionTest extends TestCase
             'transitions_icons' => ['merge' => 'fa fa-times'],
         ];
         $extension = new WorkflowExtension($registry, $options);
-        $extension->configureSideMenu($admin->reveal(), $menu = new MenuItem('root', new MenuFactory()), 'edit');
+        $extension->configureTabMenu($admin->reveal(), $menu = new MenuItem('root', new MenuFactory()), 'edit');
 
         if (count($transitions) === 0) {
             self::assertNull($child = $menu->getChild('workflow_transitions'));

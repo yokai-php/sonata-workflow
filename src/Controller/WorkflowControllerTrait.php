@@ -19,17 +19,6 @@ use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\Workflow;
 
 /**
- * @method void addFlash(string $type, string $message)
- * @method NotFoundHttpException createNotFoundException(string $message = 'Not Found', \Exception $previous = null)
- * @method string escapeHtml(string $s)
- * @method ContainerInterface getContainer
- * @method mixed get(string $id)
- * @method void handleModelManagerException(\Exception $e)
- * @method bool isXmlHttpRequest
- * @method Response redirectTo(object $object)
- * @method Response renderJson($data, int $status = 200, array $headers = [])
- * @method string trans(string $id, array $parameters = [], string $domain = null, string $locale = null)
- * @property AdminInterface $admin
  *
  * @author Yann Eugoné <eugone.yann@gmail.com>
  */
@@ -100,7 +89,7 @@ trait WorkflowControllerTrait
             $workflow->apply($existingObject, $transition);
             $existingObject = $this->admin->update($existingObject);
 
-            if ($this->isXmlHttpRequest()) {
+            if ($this->isXmlHttpRequest($request)) {
                 return $this->renderJson(
                     [
                         'result' => 'ok',
@@ -146,7 +135,7 @@ trait WorkflowControllerTrait
             );
         }
 
-        return $this->redirectTo($existingObject);
+        return $this->redirectTo($request, $existingObject);
     }
 
     /**

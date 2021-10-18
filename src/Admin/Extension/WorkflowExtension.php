@@ -79,8 +79,13 @@ class WorkflowExtension extends AbstractAdminExtension
             return;
         }
 
-        $subject = $admin->getSubject();
-        if (null === $subject || !$this->isGrantedView($admin, $subject)) {
+        try {
+            $subject = $admin->getSubject();
+        } catch (\LogicException $exception) {
+            return;
+        }
+
+        if (!$this->isGrantedView($admin, $subject)) {
             return;
         }
 

@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Yokai\SonataWorkflow\Tests\Controller;
 
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Admin\Pool;
 use Sonata\AdminBundle\Exception\LockException;
 use Sonata\AdminBundle\Exception\ModelManagerException;
-use Sonata\AdminBundle\Templating\TemplateRegistryInterface;
+use Sonata\AdminBundle\Request\AdminFetcher;
+use Sonata\AdminBundle\Templating\MutableTemplateRegistry;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -27,44 +30,31 @@ use Symfony\Component\Workflow\StateMachine;
 use Yokai\SonataWorkflow\Tests\Fixtures\StubTranslator;
 use Yokai\SonataWorkflow\Tests\PullRequest;
 use Yokai\SonataWorkflow\Tests\PullRequestWorkflowController;
-use Yokai\SonataWorkflow\Tests\TestKernel;
 
 /**
  * @author Yann Eugoné <eugone.yann@gmail.com>
  */
 class WorkflowControllerTest extends TestCase
 {
-    /**
-     * @var ContainerInterface|ObjectProphecy
-     */
-    private $container;
+    use ProphecyTrait;
 
-    /**
-     * @var Request
-     */
-    private $request;
+    private ContainerInterface $container;
+    private Request $request;
+    private Registry $registry;
+    private FlashBag $flashBag;
 
     /**
      * @var AdminInterface|ObjectProphecy
      */
     private $admin;
 
-    /**
-     * @var Registry
-     */
-    private $registry;
-
-    /**
-     * @var FlashBag
-     */
-    private $flashBag;
-
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->container = $this->prophesize(ContainerInterface::class);
         $this->admin = $this->prophesize(AdminInterface::class);
+
+        $this->container = new Container();
         $this->registry = new Registry();
         $this->flashBag = new FlashBag();
         $translator = new StubTranslator();
@@ -74,28 +64,24 @@ class WorkflowControllerTest extends TestCase
 
         $this->request->query->set('id', 42);
         $this->request->attributes->set('_sonata_admin', 'admin.pull_request');
+        $this->request->setSession(new Session(new MockArraySessionStorage(), null, $this->flashBag));
 
-        $pool = new Pool($this->container->reveal(), 'phpunit', 'phpunit');
-        $pool->setAdminServiceIds(['admin.pull_request']);
+        $pool = new Pool($this->container, ['admin.pull_request']);
 
-        $this->container->get('request_stack')->willReturn($stack);
-        $this->container->get('sonata.admin.pool')->willReturn($pool);
-        $this->container->get('sonata.admin.pool.do-not-use')->willReturn($pool);
-        $this->container->get('admin.pull_request')->willReturn($this->admin->reveal());
-        $this->container->get('workflow.registry')->willReturn($this->registry);
-        $this->container->get('kernel')->willReturn(new TestKernel());
-        $this->container->has('session')->willReturn(true);
-        $this->container->get('session')
-            ->willReturn(new Session(new MockArraySessionStorage(), null, $this->flashBag));
-        $this->container->get('translator')->willReturn($translator);
-        $this->container->has('logger')->willReturn(false);
-        $this->container->get('admin.pull_request.template_registry')
-            ->willReturn($this->prophesize(TemplateRegistryInterface::class)->reveal());
+        $this->container->getParameterBag()->set('kernel.debug', true);
+        $this->container->set('request_stack', $stack);
+        $this->container->set('parameter_bag', $this->container->getParameterBag());
+        $this->container->set('admin.pull_request', $this->admin->reveal());
+        $this->container->set('workflow.registry', $this->registry);
+        $this->container->set('translator', $translator);
+        $this->container->set('sonata.admin.request.fetcher', new AdminFetcher($pool));
 
         $this->admin->isChild()->willReturn(false);
-        $this->admin->setRequest($this->request)->willReturn(null);
+        $this->admin->setRequest($this->request)->shouldBeCalled();
         $this->admin->getIdParameter()->willReturn('id');
         $this->admin->getCode()->willReturn('admin.pull_request');
+        $this->admin->hasTemplateRegistry()->willReturn(true);
+        $this->admin->getTemplateRegistry()->willReturn(new MutableTemplateRegistry());
     }
 
     public function testWorkflowApplyTransitionActionObjectNotFound(): void
@@ -323,7 +309,8 @@ class WorkflowControllerTest extends TestCase
     {
         $controller = new PullRequestWorkflowController();
 
-        $controller->setContainer($this->container->reveal());
+        $controller->setContainer($this->container);
+        $controller->configureAdmin($this->request);
 
         return $controller;
     }
