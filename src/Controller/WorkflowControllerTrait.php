@@ -19,30 +19,14 @@ use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\Workflow;
 
 /**
- * @method void addFlash(string $type, string $message)
- * @method NotFoundHttpException createNotFoundException(string $message = 'Not Found', \Exception $previous = null)
- * @method string escapeHtml(string $s)
- * @method ContainerInterface getContainer
- * @method mixed get(string $id)
- * @method void handleModelManagerException(\Exception $e)
- * @method bool isXmlHttpRequest
- * @method Response redirectTo(object $object)
- * @method Response renderJson($data, int $status = 200, array $headers = [])
- * @method string trans(string $id, array $parameters = [], string $domain = null, string $locale = null)
- * @property AdminInterface $admin
  *
  * @author Yann Eugoné <eugone.yann@gmail.com>
  */
 trait WorkflowControllerTrait
 {
-    /**
-     * @var Registry
-     */
-    private $workflowRegistry;
+    private Registry $workflowRegistry;
 
     /**
-     * @param Registry $workflowRegistry
-     *
      * @required Symfony DI autowiring
      */
     public function setWorkflowRegistry(Registry $workflowRegistry): void
@@ -50,11 +34,6 @@ trait WorkflowControllerTrait
         $this->workflowRegistry = $workflowRegistry;
     }
 
-    /**
-     * @param Request $request
-     *
-     * @return Response
-     */
     public function workflowApplyTransitionAction(Request $request): Response
     {
         $id = $request->get($this->admin->getIdParameter());
@@ -100,7 +79,7 @@ trait WorkflowControllerTrait
             $workflow->apply($existingObject, $transition);
             $existingObject = $this->admin->update($existingObject);
 
-            if ($this->isXmlHttpRequest()) {
+            if ($this->isXmlHttpRequest($request)) {
                 return $this->renderJson(
                     [
                         'result' => 'ok',
@@ -146,18 +125,15 @@ trait WorkflowControllerTrait
             );
         }
 
-        return $this->redirectTo($existingObject);
+        return $this->redirectTo($request, $existingObject);
     }
 
     /**
-     * @param object $object
-     *
-     * @return Workflow
      * @throws InvalidArgumentException
      */
-    protected function getWorkflow($object): Workflow
+    protected function getWorkflow(object $object): Workflow
     {
-        $registry = $this->workflowRegistry;
+        $registry = $this->workflowRegistry ?? null;
         if ($registry === null) {
             try {
                 if (method_exists($this, 'get')) {
@@ -179,13 +155,7 @@ trait WorkflowControllerTrait
         return $registry->get($object);
     }
 
-    /**
-     * @param object $object
-     * @param string $transition
-     *
-     * @return null|Response
-     */
-    protected function preApplyTransition($object, string $transition): ?Response
+    protected function preApplyTransition(object $object, string $transition): ?Response
     {
         return null;
     }

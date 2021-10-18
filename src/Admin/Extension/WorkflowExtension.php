@@ -7,7 +7,7 @@ namespace Yokai\SonataWorkflow\Admin\Extension;
 use Knp\Menu\ItemInterface as MenuItemInterface;
 use Sonata\AdminBundle\Admin\AbstractAdminExtension;
 use Sonata\AdminBundle\Admin\AdminInterface;
-use Sonata\AdminBundle\Route\RouteCollection;
+use Sonata\AdminBundle\Route\RouteCollectionInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Workflow\Exception\InvalidArgumentException;
@@ -20,20 +20,9 @@ use Symfony\Component\Workflow\Workflow;
  */
 class WorkflowExtension extends AbstractAdminExtension
 {
-    /**
-     * @var Registry
-     */
-    private $registry;
+    private Registry $registry;
+    private array $options;
 
-    /**
-     * @var array
-     */
-    private $options;
-
-    /**
-     * @param Registry $registry
-     * @param array    $options
-     */
     public function __construct(Registry $registry, array $options = [])
     {
         $this->registry = $registry;
@@ -44,7 +33,7 @@ class WorkflowExtension extends AbstractAdminExtension
     /**
      * @inheritdoc
      */
-    public function configureRoutes(AdminInterface $admin, RouteCollection $collection): void
+    public function configureRoutes(AdminInterface $admin, RouteCollectionInterface $collection): void
     {
         $collection->add(
             'workflow_apply_transition',
@@ -69,18 +58,23 @@ class WorkflowExtension extends AbstractAdminExtension
     /**
      * @inheritdoc
      */
-    public function configureSideMenu(
+    public function configureTabMenu(
         AdminInterface $admin,
         MenuItemInterface $menu,
         $action,
-        AdminInterface $childAdmin = null
+        ?AdminInterface $childAdmin = null
     ): void {
         if (null !== $childAdmin || !in_array($action, $this->options['render_actions'], true)) {
             return;
         }
 
-        $subject = $admin->getSubject();
-        if (null === $subject || !$this->isGrantedView($admin, $subject)) {
+        try {
+            $subject = $admin->getSubject();
+        } catch (\LogicException $exception) {
+            return;
+        }
+
+        if (!$this->isGrantedView($admin, $subject)) {
             return;
         }
 
@@ -111,20 +105,13 @@ class WorkflowExtension extends AbstractAdminExtension
     }
 
     /**
-     * @param object      $subject
-     * @param string|null $workflowName
-     *
-     * @return Workflow
      * @throws InvalidArgumentException
      */
-    protected function getWorkflow($subject, string $workflowName = null): Workflow
+    protected function getWorkflow(object $subject, string $workflowName = null): Workflow
     {
         return $this->registry->get($subject, $workflowName);
     }
 
-    /**
-     * @param OptionsResolver $resolver
-     */
     protected function configureOptions(OptionsResolver $resolver): void
     {
         $resolver
@@ -155,10 +142,6 @@ class WorkflowExtension extends AbstractAdminExtension
         ;
     }
 
-    /**
-     * @param MenuItemInterface $menu
-     * @param AdminInterface    $admin
-     */
     protected function noTransitions(MenuItemInterface $menu, AdminInterface $admin): void
     {
         if ($this->options['no_transition_display']) {
@@ -175,16 +158,13 @@ class WorkflowExtension extends AbstractAdminExtension
     }
 
     /**
-     * @param MenuItemInterface     $menu
-     * @param AdminInterface        $admin
-     * @param iterable|Transition[] $transitions
-     * @param object                $subject
+     * @param iterable&Transition[] $transitions
      */
     protected function transitionsDropdown(
         MenuItemInterface $menu,
         AdminInterface $admin,
         iterable $transitions,
-        $subject
+        object $subject
     ): void {
         $workflowMenu = $menu->addChild($this->options['dropdown_transitions_label'], [
             'attributes' => [
@@ -201,17 +181,11 @@ class WorkflowExtension extends AbstractAdminExtension
         }
     }
 
-    /**
-     * @param MenuItemInterface $menu
-     * @param AdminInterface    $admin
-     * @param Transition        $transition
-     * @param object            $subject
-     */
     protected function transitionsItem(
         MenuItemInterface $menu,
         AdminInterface $admin,
         Transition $transition,
-        $subject
+        object $subject
     ): void {
         $options = [
             'attributes' => [],
@@ -234,11 +208,6 @@ class WorkflowExtension extends AbstractAdminExtension
         );
     }
 
-    /**
-     * @param Transition $transition
-     *
-     * @return string|null
-     */
     protected function getTransitionIcon(Transition $transition): ?string
     {
         if (isset($this->options['transitions_icons'][$transition->getName()])) {
@@ -248,14 +217,7 @@ class WorkflowExtension extends AbstractAdminExtension
         return $this->options['transitions_default_icon'];
     }
 
-    /**
-     * @param AdminInterface $admin
-     * @param Transition     $transition
-     * @param object         $subject
-     *
-     * @return string
-     */
-    protected function generateTransitionUri(AdminInterface $admin, Transition $transition, $subject): string
+    protected function generateTransitionUri(AdminInterface $admin, Transition $transition, object $subject): string
     {
         return $admin->generateObjectUrl(
             'workflow_apply_transition',
@@ -264,13 +226,7 @@ class WorkflowExtension extends AbstractAdminExtension
         );
     }
 
-    /**
-     * @param AdminInterface $admin
-     * @param object         $subject
-     *
-     * @return bool
-     */
-    protected function isGrantedView(AdminInterface $admin, $subject): bool
+    protected function isGrantedView(AdminInterface $admin, object $subject): bool
     {
         try {
             $admin->checkAccess('viewTransitions', $subject);
@@ -281,13 +237,7 @@ class WorkflowExtension extends AbstractAdminExtension
         return true;
     }
 
-    /**
-     * @param AdminInterface $admin
-     * @param object         $subject
-     *
-     * @return bool
-     */
-    protected function isGrantedApply(AdminInterface $admin, $subject): bool
+    protected function isGrantedApply(AdminInterface $admin, object $subject): bool
     {
         try {
             $admin->checkAccess('applyTransitions', $subject);

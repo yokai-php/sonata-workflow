@@ -4,6 +4,7 @@ on:
   pull_request: null
   push:
     branches:
+      - "main"
       - "0.*.x"
 
 jobs:
@@ -14,14 +15,12 @@ jobs:
     strategy:
       matrix:
         include:
-          - php-version: 7.3
-            symfony-version: 4.4.*
-          - php-version: 7.3
-            symfony-version: 5.2.*
           - php-version: 7.4
-            symfony-version: 5.2.*
+            symfony-version: 4.4.*
+            sonata-version: ^4.0
           - php-version: 8.0
-            symfony-version: 5.2.*
+            symfony-version: 5.3.*
+            sonata-version: ^4.0
 
     steps:
       - name: "Checkout"
@@ -36,6 +35,7 @@ jobs:
       - name: "Install dependencies with composer"
         run: |
           composer require --no-update symfony/workflow:${{ matrix.symfony-version }}
+          composer require --no-update sonata-project/admin-bundle:${{ matrix.sonata-version }}
           composer update --no-interaction --no-progress --no-suggest
 
       - name: "Run tests with phpunit/phpunit"
@@ -49,7 +49,7 @@ jobs:
       matrix:
         include:
           - php-version: 8.0
-            symfony-version: 5.2.*
+            symfony-version: 5.3.*
 
     steps:
       - name: "Checkout"
@@ -76,7 +76,7 @@ jobs:
       matrix:
         include:
           - php-version: 8.0
-            symfony-version: 5.2.*
+            symfony-version: 5.3.*
 
     steps:
       - name: "Checkout"

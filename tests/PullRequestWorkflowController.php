@@ -9,7 +9,7 @@ use Yokai\SonataWorkflow\Controller\WorkflowController;
 
 class PullRequestWorkflowController extends WorkflowController
 {
-    protected function preApplyTransition($object, string $transition): ?Response
+    protected function preApplyTransition(object $object, string $transition): ?Response
     {
         if ($transition === 'merge') {
             return new Response('merge');
