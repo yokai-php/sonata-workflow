@@ -24,14 +24,9 @@ use Symfony\Component\Workflow\Workflow;
  */
 trait WorkflowControllerTrait
 {
-    /**
-     * @var Registry
-     */
-    private $workflowRegistry;
+    private Registry $workflowRegistry;
 
     /**
-     * @param Registry $workflowRegistry
-     *
      * @required Symfony DI autowiring
      */
     public function setWorkflowRegistry(Registry $workflowRegistry): void
@@ -39,11 +34,6 @@ trait WorkflowControllerTrait
         $this->workflowRegistry = $workflowRegistry;
     }
 
-    /**
-     * @param Request $request
-     *
-     * @return Response
-     */
     public function workflowApplyTransitionAction(Request $request): Response
     {
         $id = $request->get($this->admin->getIdParameter());
@@ -139,14 +129,11 @@ trait WorkflowControllerTrait
     }
 
     /**
-     * @param object $object
-     *
-     * @return Workflow
      * @throws InvalidArgumentException
      */
-    protected function getWorkflow($object): Workflow
+    protected function getWorkflow(object $object): Workflow
     {
-        $registry = $this->workflowRegistry;
+        $registry = $this->workflowRegistry ?? null;
         if ($registry === null) {
             try {
                 if (method_exists($this, 'get')) {
@@ -168,13 +155,7 @@ trait WorkflowControllerTrait
         return $registry->get($object);
     }
 
-    /**
-     * @param object $object
-     * @param string $transition
-     *
-     * @return null|Response
-     */
-    protected function preApplyTransition($object, string $transition): ?Response
+    protected function preApplyTransition(object $object, string $transition): ?Response
     {
         return null;
     }

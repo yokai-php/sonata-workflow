@@ -207,7 +207,7 @@ class PullRequestController extends CRUDController
 {
     use WorkflowControllerTrait;
 
-    protected function preApplyTransition($object, string $transition): ?Response
+    protected function preApplyTransition(object $object, string $transition): ?Response
     {
         switch ($transition) {
             case 'start_review':

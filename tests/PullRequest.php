@@ -11,7 +11,7 @@ use Symfony\Component\Workflow\Transition;
 
 class PullRequest
 {
-    private $marking;
+    private ?string $marking = null;
 
     public function getMarking(): ?string
     {
