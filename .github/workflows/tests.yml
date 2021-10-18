@@ -4,6 +4,7 @@ on:
   pull_request: null
   push:
     branches:
+      - "main"
       - "0.*.x"
 
 jobs:
@@ -14,21 +15,12 @@ jobs:
     strategy:
       matrix:
         include:
-          - php-version: 7.3
-            symfony-version: 4.4.*
-            sonata-version: ^3.0
-          - php-version: 7.3
-            symfony-version: 5.2.*
-            sonata-version: ^3.0
           - php-version: 7.4
-            symfony-version: 5.2.*
-            sonata-version: ^3.0
+            symfony-version: 4.4.*
+            sonata-version: ^4.0
           - php-version: 8.0
-            symfony-version: 5.2.*
-            sonata-version: ^3.0
-          - php-version: 8.0
-            symfony-version: 5.2.*
-            sonata-version: 4.x-dev@dev
+            symfony-version: 5.3.*
+            sonata-version: ^4.0
 
     steps:
       - name: "Checkout"
@@ -57,7 +49,7 @@ jobs:
       matrix:
         include:
           - php-version: 8.0
-            symfony-version: 5.2.*
+            symfony-version: 5.3.*
 
     steps:
       - name: "Checkout"
@@ -84,7 +76,7 @@ jobs:
       matrix:
         include:
           - php-version: 8.0
-            symfony-version: 5.2.*
+            symfony-version: 5.3.*
 
     steps:
       - name: "Checkout"

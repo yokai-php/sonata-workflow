@@ -25,8 +25,8 @@
     }
   },
   "require": {
-    "php": "^7.3|^8.0",
-    "sonata-project/admin-bundle": "^3.0|^4.0",
+    "php": "^7.4|^8.0",
+    "sonata-project/admin-bundle": "^4.0",
     "symfony/workflow": "^4.4|^5.0"
   },
   "require-dev": {
