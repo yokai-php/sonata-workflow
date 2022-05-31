@@ -138,8 +138,10 @@ trait WorkflowControllerTrait
             try {
                 if (method_exists($this, 'get')) {
                     $registry = $this->get('workflow.registry');
-                } else {
+                } elseif (method_exists($this, 'getContainer')) {
                     $registry = $this->getContainer()->get('workflow.registry');
+                } else {
+                    $registry = $this->container->get('workflow.registry');
                 }
             } catch (ServiceNotFoundException $exception) {
                 throw new \LogicException(
