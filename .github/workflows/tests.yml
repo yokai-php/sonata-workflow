@@ -22,7 +22,7 @@ jobs:
             symfony-version: 5.4.*
             sonata-version: ^4.0
           - php-version: 8.1
-            symfony-version: 6.0.*
+            symfony-version: 6.1.*
             sonata-version: ^4.0
 
     steps:
@@ -52,7 +52,7 @@ jobs:
       matrix:
         include:
           - php-version: 8.1
-            symfony-version: 6.0.*
+            symfony-version: 6.1.*
 
     steps:
       - name: "Checkout"
@@ -79,7 +79,7 @@ jobs:
       matrix:
         include:
           - php-version: 8.1
-            symfony-version: 6.0.*
+            symfony-version: 6.1.*
 
     steps:
       - name: "Checkout"
