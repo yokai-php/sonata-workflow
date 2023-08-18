@@ -1,7 +1,7 @@
 Yokai Sonata Workflow
 =====================
 
-[![Tests](https://img.shields.io/github/workflow/status/yokai-php/sonata-workflow/Tests?style=flat-square&label=tests)](https://github.com/yokai-php/sonata-workflow/actions)
+[![Tests](https://img.shields.io/github/actions/workflow/status/yokai-php/sonata-workflow/tests.yml?branch=main&style=flat-square&label=tests)](https://github.com/yokai-php/sonata-workflow/actions)
 [![Coverage](https://img.shields.io/codecov/c/github/yokai-php/sonata-workflow?style=flat-square)](https://codecov.io/gh/yokai-php/sonata-workflow)
 [![Contributors](https://img.shields.io/github/contributors/yokai-php/sonata-workflow?style=flat-square)](https://github.com/yokai-php/sonata-workflow/graphs/contributors)
 
