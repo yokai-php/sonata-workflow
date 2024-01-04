@@ -13,7 +13,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Workflow\Exception\InvalidArgumentException;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\Transition;
-use Symfony\Component\Workflow\Workflow;
+use Symfony\Component\Workflow\WorkflowInterface;
 
 /**
  * @author Yann Eugoné <eugone.yann@gmail.com>
@@ -107,7 +107,7 @@ class WorkflowExtension extends AbstractAdminExtension
     /**
      * @throws InvalidArgumentException
      */
-    protected function getWorkflow(object $subject, string $workflowName = null): Workflow
+    protected function getWorkflow(object $subject, string $workflowName = null): WorkflowInterface
     {
         return $this->registry->get($subject, $workflowName);
     }
