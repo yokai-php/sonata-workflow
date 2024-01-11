@@ -131,7 +131,7 @@ trait WorkflowControllerTrait
     /**
      * @throws InvalidArgumentException
      */
-    protected function getWorkflow(object $object): Workflow
+    protected function getWorkflow(object $object): WorkflowInterface
     {
         $registry = $this->workflowRegistry ?? null;
         if ($registry === null) {
