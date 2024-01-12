@@ -17,6 +17,7 @@ use Symfony\Component\Workflow\Exception\InvalidArgumentException;
 use Symfony\Component\Workflow\Exception\LogicException;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\Workflow;
+use Symfony\Component\Workflow\WorkflowInterface;
 
 /**
  *
@@ -131,7 +132,7 @@ trait WorkflowControllerTrait
     /**
      * @throws InvalidArgumentException
      */
-    protected function getWorkflow(object $object): Workflow
+    protected function getWorkflow(object $object): WorkflowInterface
     {
         $registry = $this->workflowRegistry ?? null;
         if ($registry === null) {
