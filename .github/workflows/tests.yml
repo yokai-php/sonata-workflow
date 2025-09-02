@@ -24,8 +24,8 @@ jobs:
           - php-version: 8.1
             symfony-version: 6.1.*
             sonata-version: ^4.0
-          - php-version: 8.3
-            symfony-version: 7.2.*
+          - php-version: 8.4
+            symfony-version: 7.3.*
             sonata-version: ^4.0
 
     steps:
@@ -54,8 +54,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - php-version: 8.1
-            symfony-version: 6.1.*
+          - php-version: 8.4
+            symfony-version: 7.3.*
 
     steps:
       - name: "Checkout"
@@ -81,8 +81,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - php-version: 8.1
-            symfony-version: 6.1.*
+          - php-version: 8.4
+            symfony-version: 7.3.*
 
     steps:
       - name: "Checkout"
