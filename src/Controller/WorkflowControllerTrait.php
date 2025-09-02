@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace Yokai\SonataWorkflow\Controller;
 
-use Psr\Container\ContainerInterface;
-use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Exception\LockException;
 use Sonata\AdminBundle\Exception\ModelManagerException;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Workflow\Exception\InvalidArgumentException;
 use Symfony\Component\Workflow\Exception\LogicException;
 use Symfony\Component\Workflow\Registry;
-use Symfony\Component\Workflow\Workflow;
 use Symfony\Component\Workflow\WorkflowInterface;
+use Symfony\Contracts\Service\Attribute\Required;
+use Yokai\SonataWorkflow\Translator\StandardTranslator;
+use Yokai\SonataWorkflow\Translator\TranslatorInterface;
 
 /**
  *
@@ -26,13 +25,15 @@ use Symfony\Component\Workflow\WorkflowInterface;
 trait WorkflowControllerTrait
 {
     private Registry $workflowRegistry;
+    private TranslatorInterface $translator;
 
-    /**
-     * @required Symfony DI autowiring
-     */
-    public function setWorkflowRegistry(Registry $workflowRegistry): void
-    {
+    #[Required]
+    public function autowireWorkflowControllerTrait(
+        Registry $workflowRegistry,
+        TranslatorInterface|null $translator,
+    ): void {
         $this->workflowRegistry = $workflowRegistry;
+        $this->translator = $translator ?? new StandardTranslator();
     }
 
     public function workflowApplyTransitionAction(Request $request): Response
@@ -94,11 +95,7 @@ trait WorkflowControllerTrait
 
             $this->addFlash(
                 'sonata_flash_success',
-                $this->trans(
-                    'flash_edit_success',
-                    ['%name%' => $this->escapeHtml($this->admin->toString($existingObject))],
-                    'SonataAdminBundle'
-                )
+                $this->translator->transitionSuccessFlashMessage($this->admin, $workflow, $existingObject, $transition),
             );
         } catch (LogicException $e) {
             throw new BadRequestHttpException(
@@ -111,6 +108,10 @@ trait WorkflowControllerTrait
             );
         } catch (ModelManagerException $e) {
             $this->handleModelManagerException($e);
+            $this->addFlash(
+                'sonata_flash_error',
+                $this->translator->transitionErrorFlashMessage($this->admin, $workflow, $existingObject, $transition),
+            );
         } catch (LockException $e) {
             $this->addFlash(
                 'sonata_flash_error',
@@ -132,30 +133,18 @@ trait WorkflowControllerTrait
     /**
      * @throws InvalidArgumentException
      */
-    protected function getWorkflow(object $object): WorkflowInterface
+    final protected function getWorkflow(object $object): WorkflowInterface
     {
-        $registry = $this->workflowRegistry ?? null;
-        if ($registry === null) {
-            try {
-                if (method_exists($this, 'get')) {
-                    $registry = $this->get('workflow.registry');
-                } elseif (method_exists($this, 'getContainer')) {
-                    $registry = $this->getContainer()->get('workflow.registry');
-                } else {
-                    $registry = $this->container->get('workflow.registry');
-                }
-            } catch (ServiceNotFoundException $exception) {
-                throw new \LogicException(
-                    'Could not find the "workflow.registry" service. ' .
-                    'You should either provide it via setter injection in your controller service definition ' .
-                    'or make it public in your project.',
-                    0,
-                    $exception
-                );
-            }
+        if (!isset($this->workflowRegistry)) {
+            throw new \LogicException('Workflow registry was not set on controller.');
         }
 
-        return $registry->get($object);
+        return $this->workflowRegistry->get($object);
+    }
+
+    final protected function getWorkflowTranslator(): TranslatorInterface
+    {
+        return $this->translator ?? new StandardTranslator();
     }
 
     protected function preApplyTransition(object $object, string $transition): ?Response

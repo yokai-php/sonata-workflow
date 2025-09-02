@@ -27,6 +27,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\StateMachine;
+use Symfony\Contracts\Translation\TranslatableInterface;
 use Yokai\SonataWorkflow\Tests\Fixtures\StubTranslator;
 use Yokai\SonataWorkflow\Tests\PullRequest;
 use Yokai\SonataWorkflow\Tests\PullRequestWorkflowController;
@@ -273,7 +274,9 @@ class WorkflowControllerTest extends TestCase
         self::assertCount(0, $errors);
         $successes = $this->flashBag->peek('sonata_flash_success');
         self::assertCount(1, $successes);
-        self::assertSame('[trans]flash_edit_success[/trans]', $successes[0]);
+        $success = $successes[0];
+        self::assertInstanceOf(TranslatableInterface::class, $success);
+        self::assertSame('[trans]flash_edit_success[/trans]', $success->trans($this->container->get('translator')));
     }
 
     public function testWorkflowApplyTransitionActionPreApply(): void
@@ -312,6 +315,10 @@ class WorkflowControllerTest extends TestCase
 
         $controller->setContainer($this->container);
         $controller->configureAdmin($this->request);
+        $controller->autowireWorkflowControllerTrait(
+            $this->container->get('workflow.registry'),
+            null,
+        );
 
         return $controller;
     }
