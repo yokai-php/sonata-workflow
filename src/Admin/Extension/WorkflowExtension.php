@@ -107,7 +107,7 @@ class WorkflowExtension extends AbstractAdminExtension
     /**
      * @throws InvalidArgumentException
      */
-    protected function getWorkflow(object $subject, string $workflowName = null): WorkflowInterface
+    protected function getWorkflow(object $subject, string|null $workflowName = null): WorkflowInterface
     {
         return $this->registry->get($subject, $workflowName);
     }
