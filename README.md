@@ -31,6 +31,8 @@ This library add Symfony Workflow component integration within Sonata Admin.
   [WorkflowControllerTrait](src/Controller/WorkflowControllerTrait.php)
 - a Controller :
   [WorkflowController](src/Controller/WorkflowController.php)
+- a Translator :
+  [TranslatorInterface](src/Translator/TranslatorInterface.php)
 
 
 Installation
@@ -109,7 +111,7 @@ sonata_admin:
                 - admin.pull_request
 ```
 
-> **note**: You may noticed that we also registered the controller
+> **note**: You may have noticed that we also registered the controller
 `Yokai\SonataWorkflow\Controller\WorkflowController` as a service.
 It is important, because it needs the workflow registry service to work.
 
@@ -248,6 +250,60 @@ class PullRequestController extends CRUDController
         // do something with the submitted data before returning null to continue applying transition
 
         return null;
+    }
+}
+```
+
+Configure the translations
+--------------------------
+
+The bundle will sometime need to acquire translations.
+A utility named `TranslatorInterface` comes with a default implementation, that is using sonata standards:
+[StandardTranslator](src/Translator/StandardTranslator.php)
+
+But you might want to change how these translations are generated.
+For instance, you could have different translations keys for each workflow/transition.
+
+You need to create a new implementation of this interface, for example:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+use Sonata\AdminBundle\Admin\AdminInterface;
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\Translation\TranslatableMessage;
+use Symfony\Component\Workflow\WorkflowInterface;
+use Symfony\Contracts\Translation\TranslatableInterface;
+
+#[AsAlias(TranslatorInterface::class)]
+final class CustomTranslator implements TranslatorInterface
+{
+    public function transitionSuccessFlashMessage(
+        AdminInterface $admin,
+        WorkflowInterface $workflow,
+        object $object,
+        string $transition,
+    ): TranslatableInterface {
+        return new TranslatableMessage(
+            message: "{$workflow->getName()}.{$transition}.success",
+            domain: 'workflows',
+        );
+    }
+
+    public function transitionErrorFlashMessage(
+        AdminInterface $admin,
+        WorkflowInterface $workflow,
+        object $object,
+        string $transition,
+    ): TranslatableInterface {
+        return new TranslatableMessage(
+            message: "{$workflow->getName()}.{$transition}.error",
+            domain: 'workflows',
+        );
     }
 }
 ```
