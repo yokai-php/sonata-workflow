@@ -83,12 +83,13 @@ class WorkflowControllerTest extends TestCase
         $this->admin->getCode()->willReturn('admin.pull_request');
         $this->admin->hasTemplateRegistry()->willReturn(true);
         $this->admin->getTemplateRegistry()->willReturn(new MutableTemplateRegistry());
+        $this->admin->getClassnameLabel()->willReturn('PullRequest');
     }
 
     public function testWorkflowApplyTransitionActionObjectNotFound(): void
     {
         $this->expectException(NotFoundHttpException::class);
-        $this->expectExceptionMessage('unable to find the object with id: 42');
+        $this->expectExceptionMessage('Unable to find PullRequest object with id: 42');
 
         $this->admin->getObject(42)->shouldBeCalledTimes(1)
             ->willReturn(null);
