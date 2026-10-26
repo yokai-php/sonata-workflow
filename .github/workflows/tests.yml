@@ -21,6 +21,9 @@ jobs:
           - php-version: 8.4
             symfony-version: 7.3.*
             sonata-version: ^4.0
+          - php-version: 8.4
+            symfony-version: 8.0.*
+            sonata-version: ^4.0
 
     steps:
       - name: "Checkout"
@@ -41,6 +44,67 @@ jobs:
       - name: "Run tests with phpunit/phpunit"
         run: vendor/bin/phpunit
 
+  phpunit-lowest:
+    name: "PHPUnit lowest"
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - php-version: 8.1
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v2
+
+      - name: "Setup PHP"
+        uses: shivammathur/setup-php@v2
+        with:
+          coverage: none
+          php-version: ${{ matrix.php-version }}
+
+      - name: "Install lowest dependencies with composer"
+        run: |
+          composer update --prefer-lowest --no-interaction --no-progress --no-suggest
+
+      - name: "Run tests with phpunit/phpunit"
+        run: vendor/bin/phpunit
+
+  phpunit-next:
+    name: "PHPUnit next"
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    strategy:
+      matrix:
+        include:
+          - php-version: 8.4
+            symfony-version: 8.0.*
+            sonata-version: 5.x-dev
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v2
+
+      - name: "Setup PHP"
+        uses: shivammathur/setup-php@v2
+        with:
+          coverage: none
+          php-version: ${{ matrix.php-version }}
+
+      # Sonata Admin 5.x branch is not published on Packagist
+      - name: "Install dependencies with composer"
+        run: |
+          composer config repositories.sonata-admin vcs https://github.com/sonata-project/SonataAdminBundle
+          composer config minimum-stability dev
+          composer config prefer-stable true
+          composer require --no-update symfony/workflow:${{ matrix.symfony-version }}
+          composer require --no-update sonata-project/admin-bundle:${{ matrix.sonata-version }}
+          composer update --no-interaction --no-progress --no-suggest
+
+      - name: "Run tests with phpunit/phpunit"
+        run: vendor/bin/phpunit
+
   checkstyke:
     name: "Checkstyle"
     runs-on: ubuntu-latest
@@ -49,7 +113,8 @@ jobs:
       matrix:
         include:
           - php-version: 8.4
-            symfony-version: 7.3.*
+            symfony-version: 8.0.*
+            sonata-version: ^4.0
 
     steps:
       - name: "Checkout"
@@ -76,7 +141,8 @@ jobs:
       matrix:
         include:
           - php-version: 8.4
-            symfony-version: 7.3.*
+            symfony-version: 8.0.*
+            sonata-version: ^4.0
 
     steps:
       - name: "Checkout"

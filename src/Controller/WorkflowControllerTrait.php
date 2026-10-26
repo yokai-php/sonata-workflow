@@ -20,7 +20,6 @@ use Symfony\Component\Workflow\Workflow;
 use Symfony\Component\Workflow\WorkflowInterface;
 
 /**
- *
  * @author Yann Eugoné <eugone.yann@gmail.com>
  */
 trait WorkflowControllerTrait
@@ -37,13 +36,7 @@ trait WorkflowControllerTrait
 
     public function workflowApplyTransitionAction(Request $request): Response
     {
-        $id = $request->get($this->admin->getIdParameter());
-
-        $existingObject = $this->admin->getObject($id);
-
-        if (!$existingObject) {
-            throw $this->createNotFoundException(sprintf('unable to find the object with id: %s', $id));
-        }
+        $existingObject = $this->assertObjectExists($request);
 
         $this->admin->setSubject($existingObject);
         $this->admin->checkAccess('applyTransitions', $existingObject);
@@ -56,7 +49,7 @@ trait WorkflowControllerTrait
             throw $this->createNotFoundException('Not found', $exception);
         }
 
-        $transition = $request->get('transition', null);
+        $transition = $request->attributes->get('transition', null);
         if ($transition === null) {
             throw new BadRequestHttpException('missing transition to apply');
         }
